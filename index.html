@@ -80,11 +80,17 @@
     
     let cart = {}; 
     let spiciness = 'เผ็ดกลาง'; 
-    let paymentMethod = ''; // <-- เปลี่ยนเป็นค่าว่าง บังคับให้ผู้ใช้ต้องเลือกเอง
+    let paymentMethod = ''; // <-- บังคับให้ผู้ใช้ต้องเลือกเอง
     let studentInfo = { id: '', name: '', class: '' };
     let myOrderInfo = { id: localStorage.getItem('my_order'), status: '', timestamp: 0 };
     let pollInterval;
     let qrTimerInterval; 
+
+    // ฟังก์ชันเล่นเสียงแจ้งเตือน
+    function playNotificationSound() {
+      const audio = new Audio("https://files.catbox.moe/7s5kwu.mp3");
+      audio.play().catch(e => console.log("Audio play failed (อาจเกิดจากนโยบายเบราว์เซอร์):", e));
+    }
 
     function switchTab(tab) {
       document.getElementById('view-menu').classList.add('hidden'); document.getElementById('view-queue').classList.add('hidden');
@@ -180,11 +186,9 @@
     function setPayment(val) {
       paymentMethod = val;
       
-      // เปลี่ยนสีปุ่มที่ถูกเลือก
       document.getElementById('pay-เงินโอน').className = val === 'เงินโอน' ? 'flex-1 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-md transition' : 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
       document.getElementById('pay-เงินสด').className = val === 'เงินสด' ? 'flex-1 py-2 rounded-xl bg-green-500 text-white font-bold text-sm shadow-md transition' : 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
       
-      // ปลดล็อคปุ่มยืนยันให้เป็นสีส้ม
       const btnSubmit = document.getElementById('btn-submit');
       btnSubmit.className = "w-full bg-orange-500 text-white font-bold text-lg py-3 rounded-2xl shadow-lg shadow-orange-200 transition";
     }
@@ -193,7 +197,6 @@
       if(!studentInfo.id) { toggleCart(); return alert('กรุณาค้นหาและยืนยันข้อมูลนักเรียนก่อนครับ'); }
       if(Object.keys(cart).length === 0) return alert('กรุณาเลือกอาหาร');
       
-      // เช็คว่าเลือกวิธีจ่ายเงินหรือยัง
       if(!paymentMethod) {
         return alert('กรุณาเลือก "วิธีชำระเงิน" ก่อนกดยืนยันครับ');
       }
@@ -209,12 +212,10 @@
         localStorage.setItem('my_order', result.orderId);
         myOrderInfo = { id: result.orderId, status: 'Pending' };
         
-        // ล้างตะกร้า
         cart = {}; 
         document.querySelectorAll('[id^="qty-"]').forEach(el => el.innerText = '0');
         document.getElementById('fab-cart').classList.add('hidden'); toggleCart();
         
-        // รีเซ็ตปุ่มให้กลับไปเป็นสีเทา สำหรับออเดอร์รอบหน้า
         paymentMethod = '';
         document.getElementById('pay-เงินโอน').className = 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
         document.getElementById('pay-เงินสด').className = 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
@@ -249,6 +250,11 @@
           if (myO.status === 'Cancelled' || myO.status === 'Expired') {
              alert('ออเดอร์นี้ถูกยกเลิก หรือหมดอายุแล้ว ระบบทำการคืนสต๊อกเรียบร้อยแล้ว');
              clearMyOrder(); return;
+          }
+
+          // ** ระบบเสียงแจ้งเตือน: ถ้าระบบอัปเดตสถานะเปลี่ยนจากอย่างอื่นมาเป็น Completed ให้เล่นเสียง **
+          if (myOrderInfo.status !== 'Completed' && myO.status === 'Completed') {
+              playNotificationSound();
           }
 
           myOrderInfo.status = myO.status;
