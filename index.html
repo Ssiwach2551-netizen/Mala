@@ -2,344 +2,330 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>ระบบสั่งหมาล่าและติตตามคิวอาหาร</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สั่งอาหาร - ติดตามคิว</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f9fafb; color: #1f2937; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="pb-24">
+<body class="pb-24 max-w-md mx-auto bg-white min-h-screen shadow-xl relative">
 
   <!-- Header -->
-  <header class="bg-white sticky top-0 z-50 border-b border-orange-200 p-4 text-center shadow-sm">
-    <h1 class="text-2xl font-bold text-orange-500"> สั่งหมาล่าติดตามคิวหมาล่า</h1>
-  </header>
-
-  <main class="max-w-md mx-auto p-4">
-    
-    <!-- ข้อมูลนักเรียน -->
-    <div class="bg-white p-4 rounded-2xl shadow-sm border border-orange-100 mb-4">
-      <h2 class="text-sm font-bold text-orange-500 mb-2">👤 ข้อมูลผู้สั่ง</h2>
-      <div class="flex gap-2 mb-2">
-        <input type="text" id="stuId" placeholder="รหัสนักเรียน" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2 text-sm focus:border-orange-400 outline-none">
-        <button onclick="searchStudent()" class="bg-orange-100 text-orange-600 px-4 rounded-xl text-sm font-bold whitespace-nowrap hover:bg-orange-200">ค้นหา</button>
-      </div>
-      <div id="stuDisplay" class="hidden bg-orange-50 p-2 rounded-lg text-sm text-orange-800 border border-orange-200">
-        <!-- แสดงชื่อนักเรียน -->
-      </div>
-    </div>
-
-    <!-- Tab 1: เมนูสั่งอาหาร -->
-    <section id="tab-menu" class="tab-content active">
-      <div class="mb-4 bg-white p-4 rounded-2xl shadow-sm border border-orange-100">
-        <h2 class="text-sm font-bold text-slate-700 mb-2">เลือกระดับความเผ็ด</h2>
-        <div class="grid grid-cols-4 gap-2">
-          <button class="spice-btn bg-slate-100 border border-slate-200 rounded-lg py-1.5 text-xs text-slate-600" onclick="setSpice('ไม่เผ็ด', this)">ไม่เผ็ด</button>
-          <button class="spice-btn bg-slate-100 border border-slate-200 rounded-lg py-1.5 text-xs text-slate-600" onclick="setSpice('เผ็ดน้อย', this)">เผ็ดน้อย</button>
-          <button class="spice-btn bg-orange-500 border border-orange-500 text-white font-bold rounded-lg py-1.5 text-xs" onclick="setSpice('เผ็ดกลาง', this)">เผ็ดกลาง</button>
-          <button class="spice-btn bg-slate-100 border border-slate-200 rounded-lg py-1.5 text-xs text-slate-600" onclick="setSpice('เผ็ดชา', this)">เผ็ดชา</button>
-        </div>
-      </div>
-
-      <div id="menu-container" class="space-y-4">
-        <p class="text-center text-slate-400 text-sm mt-10">กำลังโหลดเมนู...</p>
-      </div>
-    </section>
-
-    <!-- Tab 2: ตะกร้า & ชำระเงิน -->
-    <section id="tab-cart" class="tab-content">
-      <div class="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
-        <h2 class="text-lg font-bold text-slate-800 mb-4">🛒 สรุปรายการอาหาร</h2>
-        <div id="cart-items" class="space-y-2 mb-4 border-b border-slate-100 pb-4 text-sm text-slate-600"></div>
-        <div class="flex justify-between items-center text-lg font-bold text-orange-600 mb-4">
-          <span>ยอดรวมทั้งหมด</span><span id="cart-total">0 ฿</span>
-        </div>
-
-        <h3 class="text-sm font-bold text-slate-700 mb-2">วิธีชำระเงิน</h3>
-        <div class="flex gap-2 mb-4">
-          <button onclick="setPayment('เงินโอน', this)" class="pay-btn w-full bg-orange-500 text-white font-bold py-2 rounded-xl border border-orange-500">📱 โอนเงิน (สแกน)</button>
-          <button onclick="setPayment('เงินสด', this)" class="pay-btn w-full bg-slate-100 text-slate-600 font-bold py-2 rounded-xl border border-slate-200">💵 เงินสดหน้าร้าน</button>
-        </div>
-
-        <!-- กล่อง QR Code -->
-        <div id="qr-section" class="bg-slate-50 p-4 rounded-xl text-center mb-6 border border-slate-200">
-          <p class="text-slate-800 font-bold text-sm mb-1">สแกนจ่ายผ่าน PromptPay</p>
-          <p id="qr-timer" class="text-red-500 text-xs font-bold mb-2">หมดอายุใน: 10:00</p>
-          <img id="qr-image" src="" alt="QR Code" class="mx-auto w-40 h-40 border border-slate-200 rounded bg-white p-1">
-          <div id="qr-expired" class="hidden text-red-500 font-bold text-sm py-10">QR Code หมดอายุแล้ว กรุณากดสั่งใหม่</div>
-        </div>
-
-        <button onclick="submitOrder()" id="btn-submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3.5 rounded-xl shadow-md transition">
-          ยืนยันคำสั่งซื้อ
-        </button>
-      </div>
-    </section>
-
-    <!-- Tab 3: ติดตามคิว -->
-    <section id="tab-queue" class="tab-content">
-      <div id="my-queue-card" class="hidden bg-white border border-orange-200 p-6 rounded-2xl shadow-md mb-6 relative overflow-hidden">
-        <div class="absolute top-0 right-0 p-4 opacity-5 text-6xl">🛒</div>
-        <p class="text-slate-500 text-xs font-bold mb-1">ออเดอร์ของคุณ</p>
-        <h2 id="my-order-id" class="text-3xl font-black text-orange-500">#----</h2>
-        
-        <div class="mt-4 p-3 bg-slate-50 rounded-lg text-sm text-slate-600 border border-slate-100" id="my-items-list">
-          <!-- รายการอาหารที่สั่ง -->
-        </div>
-
-        <div class="mt-4 flex justify-between items-end border-t border-slate-100 pt-4">
-          <div>
-            <p class="text-slate-400 text-xs">สถานะปัจจุบัน</p>
-            <p id="my-status-text" class="text-lg font-bold text-orange-500">รอรับออเดอร์</p>
-          </div>
-        </div>
-      </div>
-      <h3 class="text-sm font-bold text-slate-600 mb-3">คิวปัจจุบันในร้าน</h3>
-      <div id="queue-list" class="space-y-2"></div>
-    </section>
-  </main>
-
-  <!-- Bottom Nav -->
-  <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 shadow-[0_-5px_10px_rgba(0,0,0,0.02)] pb-safe">
-    <div class="flex justify-around items-center max-w-md mx-auto p-2">
-      <button onclick="switchTab('menu')" id="nav-menu" class="nav-btn text-orange-500 flex flex-col items-center p-2"><span class="text-xl">📋</span><span class="text-[10px] mt-1 font-bold">เมนู</span></button>
-      <button onclick="switchTab('cart')" id="nav-cart" class="nav-btn text-slate-400 flex flex-col items-center p-2 relative"><span class="text-xl">🛒</span><span class="text-[10px] mt-1 font-bold">ชำระเงิน</span><span id="cart-badge" class="absolute top-1 right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 rounded-full hidden">0</span></button>
-      <button onclick="switchTab('queue')" id="nav-queue" class="nav-btn text-slate-400 flex flex-col items-center p-2"><span class="text-xl">🕒</span><span class="text-[10px] mt-1 font-bold">ออเดอร์ฉัน</span></button>
-    </div>
-  </nav>
-
-  <!-- Modal แจ้งเตือนลูกค้าเมื่ออาหารเสร็จ -->
-  <div id="readyModal" class="hidden fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4">
-    <div class="bg-white p-6 rounded-2xl text-center w-full max-w-sm">
-      <div class="text-6xl mb-4">🎉</div>
-      <h2 class="text-2xl font-bold text-orange-500 mb-2">อาหารเสร็จแล้ว!</h2>
-      <p class="text-slate-600 mb-6">กรุณามารับอาหารที่หน้าร้านได้เลยครับ</p>
-      <button onclick="acknowledgeOrder()" class="w-full bg-orange-500 text-white font-bold py-3 rounded-xl">รับทราบ (ปิดเสียง)</button>
+  <div class="bg-orange-500 text-white p-4 sticky top-0 z-50 shadow-md rounded-b-2xl">
+    <h1 class="text-xl font-bold text-center">ระบบสั่งหมาล่าและติดตามคิวหมาล่า</h1>
+    <div class="flex bg-white/20 p-1 rounded-xl mt-3">
+      <button onclick="switchTab('menu')" id="tab-menu" class="flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-orange-500 shadow transition">เมนูอาหาร</button>
+      <button onclick="switchTab('queue')" id="tab-queue" class="flex-1 py-1.5 rounded-lg text-sm font-bold text-white transition">คิวของฉัน</button>
     </div>
   </div>
 
-  <!-- เสียงแจ้งเตือนลูกค้า (Loop) -->
-  <audio id="customerSound" src="https://files.catbox.moe/jqtp08.mp3" loop preload="auto"></audio>
+  <!-- Tab: เมนูอาหาร -->
+  <div id="view-menu" class="p-4">
+    <div class="bg-slate-50 p-4 rounded-2xl mb-4 border border-slate-100">
+      <label class="text-xs font-bold text-slate-500 mb-1 block">รหัสนักเรียน</label>
+      <div class="flex gap-2">
+        <input type="number" id="student-id" placeholder="กรอกรหัส..." class="flex-1 p-2 rounded-xl border border-slate-200 outline-none focus:border-orange-500">
+        <button onclick="searchStudent()" class="bg-slate-800 text-white px-4 rounded-xl font-bold text-sm">ค้นหา</button>
+      </div>
+      <div id="student-info" class="hidden mt-3 p-2 bg-green-50 text-green-700 rounded-lg text-sm font-semibold border border-green-200 text-center"></div>
+    </div>
+    <div id="menu-container" class="space-y-3"><div class="text-center py-10 text-slate-400"><p>กำลังโหลดเมนู...</p></div></div>
+  </div>
+
+  <!-- Tab: คิวของฉัน -->
+  <div id="view-queue" class="hidden p-4">
+    <div id="my-queue-card" class="bg-slate-50 border border-slate-200 rounded-2xl p-6 text-center mb-6">
+      <p class="text-slate-500">ยังไม่มีรายการสั่งซื้อ</p>
+    </div>
+    <h3 class="font-bold text-slate-700 mb-3 border-b pb-2">คิวที่กำลังทำ</h3>
+    <div id="active-queue" class="space-y-2"></div>
+  </div>
+
+  <!-- ตะกร้า -->
+  <div id="cart-bar" class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-slate-200 p-4 rounded-t-3xl shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-50 transform translate-y-full transition-transform duration-300">
+    <div class="flex justify-between items-center mb-3">
+      <h3 class="font-bold text-slate-800">สรุปรายการ</h3>
+      <button onclick="toggleCart()" class="text-slate-400 font-bold p-2">ปิด 🔽</button>
+    </div>
+    
+    <label class="text-xs font-bold text-slate-500 mb-1 block">ระดับความเผ็ด</label>
+    <div class="flex gap-2 mb-3">
+      <button onclick="setSpice('ไม่เผ็ด')" id="sp-ไม่เผ็ด" class="flex-1 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-500">ไม่เผ็ด</button>
+      <button onclick="setSpice('เผ็ดกลาง')" id="sp-เผ็ดกลาง" class="flex-1 py-1.5 rounded-lg border-2 border-red-500 bg-red-50 text-red-600 text-sm font-bold">เผ็ดกลาง</button>
+      <button onclick="setSpice('เผ็ดมาก')" id="sp-เผ็ดมาก" class="flex-1 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-500">เผ็ดมาก</button>
+    </div>
+    
+    <label class="text-xs font-bold text-slate-500 mb-1 block text-red-500">* กรุณาเลือกวิธีชำระเงิน</label>
+    <div class="flex gap-2 mb-4">
+      <button onclick="setPayment('เงินโอน')" id="pay-เงินโอน" class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition">💳 เงินโอน</button>
+      <button onclick="setPayment('เงินสด')" id="pay-เงินสด" class="flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition">💵 เงินสด</button>
+    </div>
+    
+    <button id="btn-submit" onclick="submitOrder()" class="w-full bg-slate-300 text-slate-500 font-bold text-lg py-3 rounded-2xl transition">
+      ยืนยันสั่งอาหาร <span id="cart-total" class="ml-2">0 ฿</span>
+    </button>
+  </div>
+
+  <button onclick="toggleCart()" id="fab-cart" class="hidden fixed bottom-6 right-6 bg-slate-800 text-white p-4 rounded-full shadow-xl shadow-slate-300 z-40 hover:scale-105 transition">
+    🛒 <span id="cart-badge" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-black w-6 h-6 flex items-center justify-center rounded-full border-2 border-white">0</span>
+  </button>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
-    const PROMPTPAY_NUMBER = "1418600121013"; 
+    const PROMPTPAY_NUMBER = "1418600121013"; // <--- เปลี่ยนเป็นเบอร์พร้อมเพย์ของคุณที่นี่
+    const EXPIRE_MINUTES = 10; 
     
-    let cart = {}; let spiciness = 'เผ็ดกลาง'; let paymentMethod = 'เงินโอน';
+    let cart = {}; 
+    let spiciness = 'เผ็ดกลาง'; 
+    let paymentMethod = ''; // <-- เปลี่ยนเป็นค่าว่าง บังคับให้ผู้ใช้ต้องเลือกเอง
     let studentInfo = { id: '', name: '', class: '' };
-    let myOrderInfo = { id: localStorage.getItem('my_order'), status: '', ack: false };
-    let qrTimerInterval;
+    let myOrderInfo = { id: localStorage.getItem('my_order'), status: '', timestamp: 0 };
+    let pollInterval;
+    let qrTimerInterval; 
 
-    function switchTab(t) {
-      document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
-      document.querySelectorAll('.nav-btn').forEach(e => e.classList.replace('text-orange-500', 'text-slate-400'));
-      document.getElementById('tab-' + t).classList.add('active');
-      document.getElementById('nav-' + t).classList.replace('text-slate-400', 'text-orange-500');
-      if(t === 'cart') renderCart();
-    }
-
-    function setSpice(l, btn) {
-      spiciness = l;
-      document.querySelectorAll('.spice-btn').forEach(b => {
-        b.classList.replace('bg-orange-500', 'bg-slate-100');
-        b.classList.replace('border-orange-500', 'border-slate-200');
-        b.classList.remove('text-white'); b.classList.add('text-slate-600');
-      });
-      btn.classList.replace('bg-slate-100', 'bg-orange-500');
-      btn.classList.replace('border-slate-200', 'border-orange-500');
-      btn.classList.remove('text-slate-600'); btn.classList.add('text-white');
-    }
-
-    function setPayment(m, btn) {
-      paymentMethod = m;
-      document.querySelectorAll('.pay-btn').forEach(b => {
-        b.className = 'pay-btn w-full bg-slate-100 text-slate-600 font-bold py-2 rounded-xl border border-slate-200';
-      });
-      btn.className = 'pay-btn w-full bg-orange-500 text-white font-bold py-2 rounded-xl border border-orange-500';
-      document.getElementById('qr-section').style.display = m === 'เงินโอน' ? 'block' : 'none';
+    function switchTab(tab) {
+      document.getElementById('view-menu').classList.add('hidden'); document.getElementById('view-queue').classList.add('hidden');
+      document.getElementById('tab-menu').className = 'flex-1 py-1.5 rounded-lg text-sm font-bold text-white transition bg-transparent';
+      document.getElementById('tab-queue').className = 'flex-1 py-1.5 rounded-lg text-sm font-bold text-white transition bg-transparent';
+      document.getElementById(`view-${tab}`).classList.remove('hidden');
+      document.getElementById(`tab-${tab}`).className = 'flex-1 py-1.5 rounded-lg text-sm font-bold bg-white text-orange-500 shadow transition';
+      
+      if(tab === 'queue') pollData(); else clearInterval(pollInterval);
     }
 
     async function searchStudent() {
-      const sid = document.getElementById('stuId').value;
-      if(!sid) return alert('กรอกรหัสก่อนครับ');
-      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({action: 'searchStudent', studentId: sid})});
+      const id = document.getElementById('student-id').value;
+      if (!id) return alert('กรุณากรอกรหัส');
+      const btn = document.querySelector('button[onclick="searchStudent()"]'); btn.innerText = '...';
+      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'searchStudent', studentId: id }) });
       const data = await res.json();
-      if(data.found) {
-        studentInfo = { id: sid, name: data.name, class: data.class };
-        document.getElementById('stuDisplay').classList.remove('hidden');
-        document.getElementById('stuDisplay').innerHTML = `<b>${data.class}</b> ${sid} <br/>${data.name}`;
-        alert('ดึงข้อมูลสำเร็จ');
-      } else { alert('ไม่พบข้อมูลนักเรียน'); }
+      
+      if (data.found) {
+        studentInfo = { id, name: data.name, class: data.class };
+        const infoDiv = document.getElementById('student-info');
+        infoDiv.innerText = `👋 สวัสดี ${data.name} (${data.class})`; infoDiv.classList.remove('hidden');
+      } else alert('ไม่พบข้อมูลนักเรียน');
+      btn.innerText = 'ค้นหา';
     }
 
     async function loadData() {
-      const res = await fetch(GAS_URL);
-      const data = await res.json();
-      
+      const res = await fetch(GAS_URL); const data = await res.json();
       const c = document.getElementById('menu-container'); c.innerHTML = '';
       const cats = [...new Set(data.menus.map(m => m.category))];
+      
       cats.forEach(cat => {
-        c.innerHTML += `<h3 class="text-orange-600 font-bold mt-4 mb-2 pl-1">${cat}</h3>`;
-        const items = data.menus.filter(m => m.category === cat);
-        items.forEach(i => {
-          // รูปภาพ ถ้าไม่มีใช้รูป placeholder
-          const imgSrc = i.image || "https://placehold.co/100x100?text=Food"; 
+        c.innerHTML += `<h3 class="text-orange-600 font-bold mt-4 mb-2 pl-1 border-l-4 border-orange-500">${cat}</h3>`;
+        data.menus.filter(m => m.category === cat).forEach(i => {
+          const isOutOfStock = i.stock <= 0;
           c.innerHTML += `
-            <div class="bg-white p-3 rounded-xl border border-slate-100 flex items-center shadow-sm">
-              <img src="${imgSrc}" class="w-16 h-16 object-cover rounded-lg mr-3 border border-slate-100">
+            <div class="bg-white p-3 rounded-xl border ${isOutOfStock ? 'border-red-200 bg-red-50 opacity-75' : 'border-slate-100'} flex items-center shadow-sm">
+              <img src="${i.image || "https://placehold.co/100x100"}" class="w-16 h-16 object-cover rounded-lg mr-3 ${isOutOfStock ? 'grayscale' : ''}">
               <div class="flex-1">
-                <p class="font-bold text-slate-800 text-sm">${i.name}</p>
-                <p class="text-orange-500 text-sm font-semibold">${i.price} ฿</p>
+                <p class="font-bold ${isOutOfStock ? 'text-red-700' : 'text-slate-800'} text-sm">${i.name}</p>
+                <div class="flex items-center gap-2 mt-1">
+                  <p class="text-orange-500 text-sm font-black">${i.price} ฿</p>
+                  ${isOutOfStock ? `<span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold">หมด</span>` : `<span class="text-slate-400 text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">เหลือ: ${i.stock}</span>`}
+                </div>
               </div>
               <div class="flex items-center space-x-2 bg-slate-50 rounded-lg p-1 border border-slate-200">
-                <button onclick="updateCart('${i.name}', ${i.price}, -1)" class="w-7 h-7 flex items-center justify-center text-slate-500 font-bold">-</button>
-                <span id="qty-${i.name}" class="w-4 text-center font-bold text-sm">0</span>
-                <button onclick="updateCart('${i.name}', ${i.price}, 1)" class="w-7 h-7 flex items-center justify-center text-orange-500 font-bold">+</button>
+                ${isOutOfStock ? `<span class="text-red-500 font-bold text-xs px-2 py-1">สินค้าหมด</span>` : 
+                  `<button onclick="updateCart('${i.name}', ${i.price}, -1, ${i.stock})" class="w-7 h-7 flex items-center justify-center text-slate-500 font-bold bg-white rounded">-</button>
+                   <span id="qty-${i.name}" class="w-4 text-center font-bold text-sm">0</span>
+                   <button onclick="updateCart('${i.name}', ${i.price}, 1, ${i.stock})" class="w-7 h-7 flex items-center justify-center text-orange-500 font-bold bg-white rounded">+</button>`}
               </div>
-            </div>
-          `;
+            </div>`;
         });
       });
       updateQueueUI(data.orders);
     }
 
-    function updateCart(n, p, c) {
+    function updateCart(n, p, c, maxStock) {
       if (!cart[n]) cart[n] = { price: p, qty: 0 };
+      if (c > 0 && cart[n].qty + c > maxStock) return alert(`ขออภัยครับ ${n} เหลือแค่ ${maxStock} ชิ้น`);
+
       cart[n].qty += c;
       if (cart[n].qty <= 0) delete cart[n];
       else document.getElementById(`qty-${n}`).innerText = cart[n].qty;
       if(!cart[n] && document.getElementById(`qty-${n}`)) document.getElementById(`qty-${n}`).innerText = 0;
       
       const totalQty = Object.values(cart).reduce((s, i) => s + i.qty, 0);
-      const b = document.getElementById('cart-badge');
-      if(totalQty > 0) { b.innerText = totalQty; b.classList.remove('hidden'); }
-      else b.classList.add('hidden');
-    }
-
-    function startQRTimer() {
-      clearInterval(qrTimerInterval);
-      let timeLeft = 600; // 5 นาที
-      document.getElementById('qr-image').classList.remove('hidden');
-      document.getElementById('qr-expired').classList.add('hidden');
-      document.getElementById('btn-submit').disabled = false;
-      document.getElementById('btn-submit').classList.remove('opacity-50');
-
-      qrTimerInterval = setInterval(() => {
-        timeLeft--;
-        let m = Math.floor(timeLeft / 60);
-        let s = timeLeft % 60;
-        document.getElementById('qr-timer').innerText = `หมดอายุใน: ${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
-        
-        if (timeLeft <= 0) {
-          clearInterval(qrTimerInterval);
-          document.getElementById('qr-image').classList.add('hidden');
-          document.getElementById('qr-expired').classList.remove('hidden');
-          document.getElementById('qr-timer').innerText = "QR หมดอายุ";
-          document.getElementById('btn-submit').disabled = true; // ห้ามกดสั่งถ้า QR หมด
-          document.getElementById('btn-submit').classList.add('opacity-50');
-        }
-      }, 1000);
-    }
-
-    function renderCart() {
-      const div = document.getElementById('cart-items'); div.innerHTML = '';
-      let total = 0;
-      if(Object.keys(cart).length === 0) {
-        div.innerHTML = '<p class="text-center py-4">ตะกร้าว่างเปล่า</p>';
-      } else {
-        for (const [n, d] of Object.entries(cart)) {
-          total += d.price * d.qty;
-          div.innerHTML += `<div class="flex justify-between"><span>${n} <span class="text-slate-400">x${d.qty}</span></span><span>${d.price * d.qty} ฿</span></div>`;
-        }
-      }
-      document.getElementById('cart-total').innerText = total + ' ฿';
+      const totalPrice = Object.values(cart).reduce((s, i) => s + (i.price * i.qty), 0);
       
-      if(total > 0 && paymentMethod === 'เงินโอน') {
-        document.getElementById('qr-image').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${total}.png`;
-        startQRTimer(); // เริ่มจับเวลา 10 นาทีเมื่อเข้าหน้าชำระเงิน
+      const fab = document.getElementById('fab-cart');
+      if(totalQty > 0) { 
+        fab.classList.remove('hidden'); 
+        document.getElementById('cart-badge').innerText = totalQty; 
+        document.getElementById('cart-total').innerText = totalPrice + ' ฿'; 
       }
+      else { 
+        fab.classList.add('hidden'); 
+        document.getElementById('cart-bar').classList.add('translate-y-full'); 
+      }
+    }
+
+    function toggleCart() { document.getElementById('cart-bar').classList.toggle('translate-y-full'); }
+
+    function setSpice(val) {
+      spiciness = val;
+      ['ไม่เผ็ด','เผ็ดกลาง','เผ็ดมาก'].forEach(v => {
+        document.getElementById(`sp-${v}`).className = v === val 
+          ? `flex-1 py-1.5 rounded-lg border-2 border-red-500 bg-red-50 text-red-600 text-sm font-bold`
+          : `flex-1 py-1.5 rounded-lg border border-slate-200 text-sm font-bold text-slate-500`;
+      });
+    }
+
+    function setPayment(val) {
+      paymentMethod = val;
+      
+      // เปลี่ยนสีปุ่มที่ถูกเลือก
+      document.getElementById('pay-เงินโอน').className = val === 'เงินโอน' ? 'flex-1 py-2 rounded-xl bg-blue-500 text-white font-bold text-sm shadow-md transition' : 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
+      document.getElementById('pay-เงินสด').className = val === 'เงินสด' ? 'flex-1 py-2 rounded-xl bg-green-500 text-white font-bold text-sm shadow-md transition' : 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
+      
+      // ปลดล็อคปุ่มยืนยันให้เป็นสีส้ม
+      const btnSubmit = document.getElementById('btn-submit');
+      btnSubmit.className = "w-full bg-orange-500 text-white font-bold text-lg py-3 rounded-2xl shadow-lg shadow-orange-200 transition";
     }
 
     async function submitOrder() {
-      if(!studentInfo.id) return alert('กรุณาค้นหาข้อมูลนักเรียนก่อนครับ');
+      if(!studentInfo.id) { toggleCart(); return alert('กรุณาค้นหาและยืนยันข้อมูลนักเรียนก่อนครับ'); }
       if(Object.keys(cart).length === 0) return alert('กรุณาเลือกอาหาร');
-
-      const btn = document.getElementById('btn-submit');
-      btn.innerText = 'กำลังส่งออเดอร์...'; btn.disabled = true;
       
-      let itemsText = [], total = 0;
-      for (const [n, d] of Object.entries(cart)) {
-        itemsText.push(`${n} x${d.qty}`); total += d.price * d.qty;
+      // เช็คว่าเลือกวิธีจ่ายเงินหรือยัง
+      if(!paymentMethod) {
+        return alert('กรุณาเลือก "วิธีชำระเงิน" ก่อนกดยืนยันครับ');
       }
 
-      const payload = {
-        action: 'newOrder', studentId: studentInfo.id, studentName: studentInfo.name, class: studentInfo.class,
-        items: itemsText.join(', '), spiciness, totalPrice: total, paymentMethod
-      };
+      const btn = document.getElementById('btn-submit'); btn.innerText = 'กำลังส่งออเดอร์...'; btn.disabled = true;
+      let itemsText = [], total = 0;
+      for (const [n, d] of Object.entries(cart)) { itemsText.push(`${n} x${d.qty}`); total += d.price * d.qty; }
 
-      const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-      const result = await res.json();
-      
-      localStorage.setItem('my_order', result.orderId);
-      myOrderInfo = { id: result.orderId, status: 'Pending', ack: false };
-      cart = {}; updateCart('',0,0); switchTab('queue'); pollData();
-      btn.innerText = 'ยืนยันคำสั่งซื้อ'; btn.disabled = false;
+      try {
+        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'newOrder', studentId: studentInfo.id, studentName: studentInfo.name, class: studentInfo.class, items: itemsText.join(', '), spiciness, totalPrice: total, paymentMethod, cartRaw: cart }) });
+        const result = await res.json();
+        
+        localStorage.setItem('my_order', result.orderId);
+        myOrderInfo = { id: result.orderId, status: 'Pending' };
+        
+        // ล้างตะกร้า
+        cart = {}; 
+        document.querySelectorAll('[id^="qty-"]').forEach(el => el.innerText = '0');
+        document.getElementById('fab-cart').classList.add('hidden'); toggleCart();
+        
+        // รีเซ็ตปุ่มให้กลับไปเป็นสีเทา สำหรับออเดอร์รอบหน้า
+        paymentMethod = '';
+        document.getElementById('pay-เงินโอน').className = 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
+        document.getElementById('pay-เงินสด').className = 'flex-1 py-2 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm border border-slate-200 transition';
+        document.getElementById('btn-submit').className = "w-full bg-slate-300 text-slate-500 font-bold text-lg py-3 rounded-2xl transition";
+        
+        switchTab('queue'); btn.innerText = 'ยืนยันสั่งอาหาร'; btn.disabled = false;
+        loadData();
+      } catch (e) { alert('เกิดข้อผิดพลาด กรุณาลองใหม่'); btn.innerText = 'ยืนยันสั่งอาหาร'; btn.disabled = false; }
+    }
+
+    async function autoExpireOrder(orderId) {
+      clearInterval(qrTimerInterval);
+      await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', orderId: orderId, type: 'food', value: 'Expired' }) });
+      alert('⚠️ ออเดอร์ของคุณหมดเวลาในการชำระเงิน และถูกยกเลิกแล้ว กรุณาสั่งใหม่ครับ');
+      clearMyOrder();
+    }
+
+    function clearMyOrder() {
+      localStorage.removeItem('my_order');
+      myOrderInfo = { id: null, status: '' };
+      clearInterval(qrTimerInterval);
+      loadData();
+      switchTab('menu');
     }
 
     function updateQueueUI(orders) {
-      const q = document.getElementById('queue-list'); q.innerHTML = '';
-      const active = orders.filter(o => o.status !== 'Completed' && o.status !== 'Acknowledged');
-      
-      active.forEach(o => {
-        q.innerHTML += `
-          <div class="p-3 bg-white border border-slate-200 rounded-xl flex justify-between items-center">
-            <span class="font-bold text-slate-700">${o.orderId} <span class="text-xs text-slate-400 ml-1">${o.studentName.split(' ')[0]}</span></span>
-            <span class="text-xs px-2 py-1 rounded-lg border ${o.status === 'Cooking' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-slate-50 text-slate-500'}">${o.status === 'Cooking' ? 'กำลังทำ' : 'รอคิว'}</span>
-          </div>
-        `;
-      });
-
-      if (myOrderInfo.id) {
-        const me = orders.find(o => o.orderId === myOrderInfo.id);
-        if (me) {
-          document.getElementById('my-queue-card').classList.remove('hidden');
-          document.getElementById('my-order-id').innerText = me.orderId;
-          document.getElementById('my-items-list').innerText = me.items + ` (${me.spiciness})`;
-          
-          let txt = 'รอดำเนินการ'; let cl = 'text-slate-500';
-          if (me.paymentMethod === 'เงินโอน' && me.paymentStatus !== 'Paid') { txt = 'รอร้านตรวจสอบยอดโอน'; cl = 'text-red-500'; }
-          else if (me.status === 'Pending') { txt = 'อยู่ในคิว'; cl = 'text-orange-400'; }
-          else if (me.status === 'Cooking') { txt = 'กำลังทำอาหาร 🔥'; cl = 'text-orange-600'; }
-          else if (me.status === 'Completed') { 
-            txt = '✅ เสร็จแล้ว! มารับได้เลย'; cl = 'text-green-500'; 
-            // เล่นเสียง Loop จนกว่าจะกดรับทราบ
-            if (!myOrderInfo.ack) {
-              document.getElementById('readyModal').classList.remove('hidden');
-              document.getElementById('customerSound').play().catch(e=>{});
-            }
+      if(myOrderInfo.id) {
+        const myO = orders.find(o => o.orderId === myOrderInfo.id);
+        const card = document.getElementById('my-queue-card');
+        
+        if(myO) {
+          if (myO.status === 'Cancelled' || myO.status === 'Expired') {
+             alert('ออเดอร์นี้ถูกยกเลิก หรือหมดอายุแล้ว ระบบทำการคืนสต๊อกเรียบร้อยแล้ว');
+             clearMyOrder(); return;
           }
-          document.getElementById('my-status-text').innerText = txt;
-          document.getElementById('my-status-text').className = `text-lg font-bold ${cl}`;
+
+          myOrderInfo.status = myO.status;
+          let statusHTML = '';
+          
+          if(myO.paymentMethod === 'เงินโอน' && myO.paymentStatus !== 'Paid') {
+            const orderTimestamp = Number(myO.timestamp) || new Date().getTime();
+            const qrImageUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${myO.totalPrice}.png`;
+            
+            statusHTML = `
+              <div class="mt-4 p-4 bg-white border-2 border-blue-200 rounded-xl flex flex-col items-center shadow-sm relative">
+                <p class="font-bold text-blue-700 mb-2 text-sm">สแกนเพื่อจ่ายเงิน <span class="text-xl">${myO.totalPrice} ฿</span></p>
+                <img src="${qrImageUrl}" class="w-48 h-48 rounded-lg shadow border border-slate-100 mb-2">
+                <p class="text-xs text-blue-600 font-bold mb-2">⚠️ โอนแล้วโชว์สลิปที่เคาน์เตอร์</p>
+                <div id="qr-countdown" class="bg-red-100 text-red-600 font-bold px-3 py-1 rounded-full text-sm">หมดเวลาใน: กำลังคำนวณ...</div>
+              </div>
+            `;
+            
+            clearInterval(qrTimerInterval);
+            qrTimerInterval = setInterval(() => {
+              const now = new Date().getTime();
+              const expireTime = orderTimestamp + (EXPIRE_MINUTES * 60 * 1000);
+              const timeLeft = expireTime - now;
+
+              if (timeLeft <= 0) {
+                autoExpireOrder(myO.orderId);
+              } else {
+                const el = document.getElementById('qr-countdown');
+                if (el) {
+                  const m = Math.floor(timeLeft / 60000);
+                  const s = Math.floor((timeLeft % 60000) / 1000);
+                  el.innerText = `⏳ หมดเวลาใน: ${m}:${s < 10 ? '0':''}${s} นาที`;
+                }
+              }
+            }, 1000);
+
+          } else if (myO.status === 'Completed') {
+            clearInterval(qrTimerInterval);
+            statusHTML = `
+              <div class="mt-4 p-4 bg-green-500 text-white rounded-xl shadow-md flex flex-col items-center">
+                <span class="text-2xl mb-2">🎉</span>
+                <p class="font-bold text-lg mb-4">อาหารเสร็จแล้ว! มารับได้เลย</p>
+                <button onclick="clearMyOrder()" class="bg-white text-green-600 font-bold py-2 px-6 rounded-lg text-sm shadow">รับอาหารเรียบร้อย (สั่งใหม่)</button>
+              </div>`;
+          } else if (myO.status === 'Cooking') {
+            clearInterval(qrTimerInterval);
+            statusHTML = `<div class="mt-4 p-3 bg-orange-100 text-orange-600 rounded-xl font-bold border border-orange-200">🔥 กำลังทำอาหาร...</div>`;
+          } else {
+            clearInterval(qrTimerInterval);
+            statusHTML = `<div class="mt-4 p-3 bg-slate-100 text-slate-600 rounded-xl font-bold text-sm">⏳ รอร้านรับออเดอร์</div>`;
+          }
+          
+          card.innerHTML = `<p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">คิวของคุณ</p><h2 class="text-5xl font-black text-slate-800">${myO.orderId}</h2>${statusHTML}`;
         }
+      }
+
+      const q = document.getElementById('active-queue'); q.innerHTML = '';
+      const active = orders.filter(o => o.status === 'Pending' || o.status === 'Cooking');
+      if (active.length === 0) q.innerHTML = '<p class="text-center text-sm text-slate-400 mt-6 bg-slate-50 py-4 rounded-xl border border-slate-100">ไม่มีคิวรอ</p>';
+      else {
+        active.forEach(o => {
+          q.innerHTML += `
+            <div class="flex justify-between items-center p-3.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+              <span class="font-bold text-lg ${o.orderId === myOrderInfo.id ? 'text-orange-500' : 'text-slate-700'}">${o.orderId}</span>
+              <span class="text-xs px-2.5 py-1.5 rounded-lg font-bold ${o.status === 'Cooking' ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-500'}">${o.status === 'Cooking' ? '🔥 กำลังทำ' : '⏳ รอคิว'}</span>
+            </div>`;
+        });
       }
     }
 
-    async function acknowledgeOrder() {
-      document.getElementById('customerSound').pause();
-      document.getElementById('readyModal').classList.add('hidden');
-      myOrderInfo.ack = true; // จำไว้ว่ากดรับทราบแล้ว
-      // ถ้าอยากล้างออเดอร์ออกจากจอตัวเองเลย ให้ uncomment บรรทัดล่าง
-      // localStorage.removeItem('my_order'); myOrderInfo.id = null; document.getElementById('my-queue-card').classList.add('hidden');
+    async function pollData() {
+      const res = await fetch(GAS_URL); const data = await res.json();
+      updateQueueUI(data.orders);
     }
 
-    async function pollData() {
-      const res = await fetch(GAS_URL); const data = await res.json(); updateQueueUI(data.orders);
-    }
-    loadData(); setInterval(pollData, 10000);
+    loadData();
+    setInterval(() => { if(!document.getElementById('view-queue').classList.contains('hidden')) pollData(); }, 10000);
   </script>
 </body>
 </html>
