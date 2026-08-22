@@ -11,12 +11,14 @@
 </head>
 <body class="p-4 md:p-6">
 
+  <!-- หน้าจอปลดล็อกเสียง -->
   <div id="startOverlay" class="fixed inset-0 bg-white z-[200] flex flex-col items-center justify-center">
     <h1 class="text-3xl font-bold text-orange-500 mb-6">ระบบจัดการหลังร้าน</h1>
     <button onclick="startAdmin()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-2xl text-xl shadow-lg transition">เข้าสู่ระบบ (เปิดระบบเสียงเตือน)</button>
   </div>
 
   <div class="max-w-6xl mx-auto">
+    <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 gap-4">
       <div class="flex gap-2 w-full md:w-auto">
         <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="flex-1 bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm">📋 รับออเดอร์</button>
@@ -28,8 +30,10 @@
       </div>
     </div>
 
+    <!-- ส่วนออเดอร์ -->
     <div id="section-orders"><div id="adminOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div></div>
     
+    <!-- ส่วนจัดการสต๊อก -->
     <div id="section-stock" class="hidden">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
         <h2 class="text-lg font-bold text-orange-600 mb-4 flex items-center"><span class="bg-orange-100 p-2 rounded-lg mr-2">➕</span> เพิ่ม/แก้ไข เมนูและวัตถุดิบ</h2>
@@ -52,7 +56,11 @@
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
-    let lastOrderCount = 0; let globalMenus = [];
+    
+    // เปลี่ยนจาก lastOrderCount มาเป็นการเก็บรายชื่อ ID เพื่อความแม่นยำ
+    let knownOrders = []; 
+    let isFirstLoad = true;
+    let globalMenus = [];
 
     function switchAdminTab(tab) {
       document.getElementById('section-orders').classList.add('hidden'); document.getElementById('section-stock').classList.add('hidden');
@@ -74,11 +82,23 @@
         globalMenus = data.menus; renderStockTable();
 
         const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.status !== 'Expired');
-        if (active.length > lastOrderCount && lastOrderCount !== 0) {
-          document.getElementById('adminSound').play();
+        
+        let hasNewOrder = false;
+        active.forEach(o => {
+          // ตรวจสอบว่ามีออเดอร์ใหม่ที่ไม่เคยอยู่ในระบบมาก่อนหรือไม่
+          if (!knownOrders.includes(o.orderId)) {
+            knownOrders.push(o.orderId);
+            if (!isFirstLoad) hasNewOrder = true;
+          }
+        });
+
+        // ถ้ามีออเดอร์ใหม่ ให้เล่นเสียงและแจ้งเตือน
+        if (hasNewOrder) {
+          document.getElementById('adminSound').play().catch(e => console.log('Audio play failed:', e));
           Swal.fire({ title: 'มีออเดอร์ใหม่เข้า!', icon: 'info', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000 });
         }
-        lastOrderCount = active.length;
+        
+        isFirstLoad = false;
 
         const c = document.getElementById('adminOrders'); c.innerHTML = '';
         if (active.length === 0) return c.innerHTML = `<div class="col-span-full flex flex-col items-center text-slate-400 py-20 bg-white rounded-2xl border border-slate-200 border-dashed"><span class="text-5xl mb-4">🎉</span><p class="font-bold text-lg">ว่างแล้ว ไม่มีออเดอร์ค้าง</p></div>`;
