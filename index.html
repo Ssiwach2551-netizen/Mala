@@ -222,7 +222,7 @@
 
     function startQRTimer() {
       clearInterval(qrTimerInterval);
-      let timeLeft = 300; // 5 นาที
+      let timeLeft = 600; // 5 นาที
       document.getElementById('qr-image').classList.remove('hidden');
       document.getElementById('qr-expired').classList.add('hidden');
       document.getElementById('btn-submit').disabled = false;
@@ -260,7 +260,7 @@
       
       if(total > 0 && paymentMethod === 'เงินโอน') {
         document.getElementById('qr-image').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${total}.png`;
-        startQRTimer(); // เริ่มจับเวลา 5 นาทีเมื่อเข้าหน้าชำระเงิน
+        startQRTimer(); // เริ่มจับเวลา 10 นาทีเมื่อเข้าหน้าชำระเงิน
       }
     }
 
