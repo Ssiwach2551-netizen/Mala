@@ -5,109 +5,159 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin - ระบบจัดการหลังร้าน</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; }</style>
+  <style>body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; } .swal2-title { font-family: 'Prompt', sans-serif !important; }</style>
 </head>
-<body class="p-4">
+<body class="p-4 md:p-6">
 
-  <!-- Overlay กดเปิดเสียง -->
   <div id="startOverlay" class="fixed inset-0 bg-white z-[200] flex flex-col items-center justify-center">
-    <h1 class="text-3xl font-bold text-orange-500 mb-4">ระบบจัดการหลังร้าน</h1>
-    <button onclick="startAdmin()" class="bg-orange-500 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg">เข้าสู่ระบบ (เปิดเสียงแจ้งเตือน)</button>
+    <h1 class="text-3xl font-bold text-orange-500 mb-6">ระบบจัดการหลังร้าน</h1>
+    <button onclick="startAdmin()" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-2xl text-xl shadow-lg transition">เข้าสู่ระบบ (เปิดระบบเสียงเตือน)</button>
   </div>
 
   <div class="max-w-6xl mx-auto">
-    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-      <div>
-        <h1 class="text-2xl font-bold text-orange-600">👨‍🍳 รายการสั่งอาหาร</h1>
-        <p class="text-sm text-slate-500">อัปเดตอัตโนมัติ</p>
+    <div class="flex flex-col md:flex-row justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200 gap-4">
+      <div class="flex gap-2 w-full md:w-auto">
+        <button onclick="switchAdminTab('orders')" id="tab-btn-orders" class="flex-1 bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm">📋 รับออเดอร์</button>
+        <button onclick="switchAdminTab('stock')" id="tab-btn-stock" class="flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-bold transition">📦 สต๊อกเมนู</button>
       </div>
-      <div class="text-right">
-        <p class="text-xs text-slate-400 font-bold uppercase">ยอดขายวันนี้</p>
+      <div class="text-right w-full md:w-auto flex justify-between md:block items-center bg-green-50 px-4 py-2 rounded-xl border border-green-100">
+        <p class="text-xs text-green-600 font-bold uppercase mb-1">ยอดขายวันนี้</p>
         <p id="totalSalesDisplay" class="text-2xl font-black text-green-500">0 ฿</p>
       </div>
     </div>
 
-    <div id="adminOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    <div id="section-orders"><div id="adminOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div></div>
+    
+    <div id="section-stock" class="hidden">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
+        <h2 class="text-lg font-bold text-orange-600 mb-4 flex items-center"><span class="bg-orange-100 p-2 rounded-lg mr-2">➕</span> เพิ่ม/แก้ไข เมนูและวัตถุดิบ</h2>
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+          <input type="text" id="mCat" placeholder="หมวดหมู่ (เช่น ข้าว)" class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 focus:border-orange-500 outline-none">
+          <input type="text" id="mName" placeholder="ชื่อเมนู/วัตถุดิบ" class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 focus:border-orange-500 outline-none">
+          <input type="number" id="mPrice" placeholder="ราคา (บาท)" class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 focus:border-orange-500 outline-none">
+          <input type="number" id="mStock" placeholder="จำนวนสต๊อก" class="border border-slate-200 p-2.5 rounded-xl bg-slate-50 focus:border-orange-500 outline-none">
+          <button onclick="saveMenu()" class="bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl py-2.5 shadow-sm transition">บันทึกข้อมูล</button>
+        </div>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 class="text-lg font-bold text-slate-800 mb-4 flex items-center"><span class="bg-slate-100 p-2 rounded-lg mr-2">📦</span> รายการสต๊อกปัจจุบัน</h2>
+        <div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="bg-slate-50 border-b border-slate-200 text-slate-500 text-sm"><th class="p-3 font-semibold rounded-tl-lg">หมวดหมู่</th><th class="p-3 font-semibold">ชื่อเมนู</th><th class="p-3 font-semibold">ราคา</th><th class="p-3 font-semibold rounded-tr-lg">สต๊อกคงเหลือ</th></tr></thead><tbody id="stockTableBody"></tbody></table></div>
+      </div>
+    </div>
   </div>
 
-  <!-- เสียงเตือนแม่ค้า (เล่นครั้งเดียวต่อออเดอร์ใหม่) -->
-  <audio id="adminSound" src="https://files.catbox.moe/jqtp08.mp3" preload="auto"></audio>
+  <audio id="adminSound" src="https://files.catbox.moe/7s5kwu.mp3" preload="auto"></audio>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
-    let lastOrderCount = 0;
+    let lastOrderCount = 0; let globalMenus = [];
+
+    function switchAdminTab(tab) {
+      document.getElementById('section-orders').classList.add('hidden'); document.getElementById('section-stock').classList.add('hidden');
+      document.getElementById('tab-btn-orders').className = 'flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-bold transition';
+      document.getElementById('tab-btn-stock').className = 'flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-bold transition';
+      document.getElementById(`section-${tab}`).classList.remove('hidden'); document.getElementById(`tab-btn-${tab}`).className = 'flex-1 bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm';
+    }
 
     function startAdmin() {
       document.getElementById('startOverlay').style.display = 'none';
-      document.getElementById('adminSound').play().catch(e=>{}); // เล่นเงียบๆ เพื่อ unlock audio browser
-      document.getElementById('adminSound').pause();
-      loadAdminOrders();
-      setInterval(loadAdminOrders, 8000);
+      const audio = document.getElementById('adminSound'); audio.play().catch(e=>{}); audio.pause(); audio.currentTime = 0;
+      loadAdminOrders(); setInterval(loadAdminOrders, 8000);
     }
 
     async function loadAdminOrders() {
-      const res = await fetch(GAS_URL);
-      const data = await res.json();
-      
-      document.getElementById('totalSalesDisplay').innerText = data.totalSales + " ฿";
-      
-      const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Acknowledged');
-      
-      // ตรวจจับออเดอร์ใหม่เพื่อเล่นเสียง
-      if (active.length > lastOrderCount && lastOrderCount !== 0) {
-        document.getElementById('adminSound').play();
-        alert("🔔 มีออเดอร์ใหม่เข้ามาระบบ!");
-      }
-      lastOrderCount = active.length;
+      try {
+        const res = await fetch(GAS_URL); const data = await res.json();
+        document.getElementById('totalSalesDisplay').innerText = data.totalSales.toLocaleString() + " ฿";
+        globalMenus = data.menus; renderStockTable();
 
-      const c = document.getElementById('adminOrders'); c.innerHTML = '';
-      if (active.length === 0) return c.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10 bg-white rounded-2xl">🎉 ว่างแล้ว ไม่มีออเดอร์ค้าง</p>`;
+        const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.status !== 'Expired');
+        if (active.length > lastOrderCount && lastOrderCount !== 0) {
+          document.getElementById('adminSound').play();
+          Swal.fire({ title: 'มีออเดอร์ใหม่เข้า!', icon: 'info', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000 });
+        }
+        lastOrderCount = active.length;
 
-      active.forEach(o => {
-        // เช็คว่าต้องรอตรวจโอนเงินไหม
-        const needVerify = o.paymentMethod === 'เงินโอน' && o.paymentStatus !== 'Paid';
-        const isCooking = o.status === 'Cooking';
+        const c = document.getElementById('adminOrders'); c.innerHTML = '';
+        if (active.length === 0) return c.innerHTML = `<div class="col-span-full flex flex-col items-center text-slate-400 py-20 bg-white rounded-2xl border border-slate-200 border-dashed"><span class="text-5xl mb-4">🎉</span><p class="font-bold text-lg">ว่างแล้ว ไม่มีออเดอร์ค้าง</p></div>`;
 
-        c.innerHTML += `
-          <div class="bg-white border ${needVerify ? 'border-red-300' : isCooking ? 'border-orange-400' : 'border-slate-200'} rounded-2xl p-5 shadow-sm">
-            <div class="flex justify-between items-start mb-2">
-              <span class="text-2xl font-black ${isCooking ? 'text-orange-500' : 'text-slate-700'}">${o.orderId}</span>
-              <span class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded font-bold border border-red-200">🌶️ ${o.spiciness}</span>
-            </div>
-            
-            <p class="font-bold text-slate-800 text-sm">รหัส: ${o.studentId} | ${o.class}</p>
-            <p class="text-sm text-slate-600 mb-3">${o.studentName}</p>
-            
-            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-sm text-slate-700 min-h-[4rem] mb-3">
-              ${o.items}
-            </div>
-            
-            <div class="flex justify-between items-center mb-4">
-              <span class="text-xs font-bold px-2 py-1 rounded ${o.paymentMethod === 'เงินสด' ? 'bg-slate-200 text-slate-600' : 'bg-blue-100 text-blue-600'}">${o.paymentMethod}</span>
-              <p class="text-lg font-bold text-green-600">${o.totalPrice} ฿</p>
-            </div>
+        active.forEach(o => {
+          const needVerify = o.paymentMethod === 'เงินโอน' && o.paymentStatus !== 'Paid';
+          const isCooking = o.status === 'Cooking';
 
-            <div class="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3">
-              ${needVerify ? `
-                <button onclick="updateData('${o.orderId}', 'payment', 'Paid')" class="bg-blue-500 text-white font-bold py-2 rounded-lg">ตรวจสอบ & รับยอดโอนแล้ว</button>
-              ` : !isCooking ? `
-                <button onclick="updateData('${o.orderId}', 'food', 'Cooking')" class="bg-orange-500 text-white font-bold py-2 rounded-lg">🔥 เริ่มทำอาหาร</button>
-              ` : `
-                <button onclick="updateData('${o.orderId}', 'food', 'Completed')" class="bg-green-500 text-white font-bold py-2 rounded-lg">✅ ทำเสร็จแล้ว (เรียกคิว)</button>
-              `}
-            </div>
-          </div>
-        `;
+          c.innerHTML += `
+            <div class="bg-white border-2 ${needVerify ? 'border-red-400 shadow-md shadow-red-100' : isCooking ? 'border-orange-400 shadow-md shadow-orange-100' : 'border-slate-200'} rounded-2xl p-5 relative transition-all flex flex-col justify-between">
+              <div>
+                ${needVerify ? '<span class="absolute -top-3 -right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-bounce">รอตรวจยอดเงิน</span>' : ''}
+                <div class="flex justify-between items-start mb-2">
+                  <span class="text-2xl font-black ${isCooking ? 'text-orange-500' : 'text-slate-700'}">${o.orderId}</span>
+                  <span class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold border border-red-100">🌶️ ${o.spiciness}</span>
+                </div>
+                <p class="font-bold text-slate-800 text-base mb-1">${o.studentName}</p>
+                <p class="text-xs text-slate-500 mb-3 bg-slate-100 inline-block px-2 py-0.5 rounded">ห้อง: ${o.class}</p>
+                <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-sm text-slate-700 min-h-[4rem] mb-4 font-medium leading-relaxed">${o.items}</div>
+                <div class="flex justify-between items-center mb-5 pb-4 border-b border-slate-100">
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${o.paymentMethod === 'เงินสด' ? 'bg-slate-100 text-slate-600' : 'bg-blue-50 text-blue-600 border border-blue-100'}">${o.paymentMethod}</span>
+                  <p class="text-xl font-black text-green-500">${o.totalPrice} ฿</p>
+                </div>
+              </div>
+
+              <div>
+                <div class="grid grid-cols-1 gap-2">
+                  ${needVerify ? `<button onclick="updateData('${o.orderId}', 'payment', 'Paid', 'ตรวจสอบและรับยอดโอน')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-sm">💰 รับยอดโอนแล้ว</button>` : 
+                    !isCooking ? `<button onclick="updateData('${o.orderId}', 'food', 'Cooking', 'เริ่มทำอาหาร')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-sm">🔥 รับออเดอร์ & เริ่มทำ</button>` : 
+                                 `<button onclick="updateData('${o.orderId}', 'food', 'Completed', 'ทำเสร็จเรียบร้อย')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-sm">✅ เสิร์ฟ (เรียกคิว)</button>`}
+                </div>
+                <!-- ปุ่มยกเลิกออเดอร์ จะคืนสต๊อกให้อัตโนมัติ -->
+                <button onclick="cancelOrder('${o.orderId}')" class="w-full text-center text-red-500 font-semibold text-xs mt-3 underline hover:text-red-700">❌ ยกเลิกออเดอร์ (คืนสต๊อก)</button>
+              </div>
+            </div>`;
+        });
+      } catch(e) {}
+    }
+
+    async function cancelOrder(orderId) {
+      Swal.fire({
+        title: 'ยืนยันยกเลิกออเดอร์?',
+        text: "สต๊อกวัตถุดิบจะถูกคืนเข้าสู่ระบบอัตโนมัติ",
+        icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', cancelButtonColor: '#94a3b8',
+        confirmButtonText: 'ใช่, ยกเลิกออเดอร์', cancelButtonText: 'ปิด'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          updateData(orderId, 'food', 'Cancelled', 'ยกเลิกออเดอร์และคืนสต๊อก');
+        }
+      })
+    }
+
+    async function updateData(orderId, type, val, actionName) {
+      Swal.fire({ title: `กำลังดำเนินการ...`, text: `ออเดอร์ ${orderId} : ${actionName}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+      try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', orderId, type, value: val }) });
+        Swal.fire({ title: 'สำเร็จ!', icon: 'success', timer: 1500, showConfirmButton: false });
+        loadAdminOrders();
+      } catch(e) { Swal.fire('ข้อผิดพลาด!', 'กรุณาลองใหม่', 'error'); }
+    }
+
+    function renderStockTable() {
+      const tb = document.getElementById('stockTableBody'); tb.innerHTML = '';
+      globalMenus.forEach(m => {
+        const isLow = m.stock <= 5;
+        tb.innerHTML += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition"><td class="p-3 text-slate-500 text-sm">${m.category}</td><td class="p-3 font-bold text-slate-800">${m.name}</td><td class="p-3 text-green-600 font-bold">${m.price} ฿</td><td class="p-3"><span class="px-3 py-1 rounded-lg font-bold text-sm ${isLow ? 'bg-red-100 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-700'}">${m.stock}</span></td></tr>`;
       });
     }
 
-    async function updateData(orderId, type, val) {
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'updateStatus', orderId: orderId, type: type, value: val })
-      });
-      loadAdminOrders();
+    async function saveMenu() {
+      const cat = document.getElementById('mCat').value.trim(), name = document.getElementById('mName').value.trim(), price = document.getElementById('mPrice').value, stock = document.getElementById('mStock').value;
+      if(!cat || !name || !price || !stock) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกให้ครบ', 'warning');
+      Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMenu', category: cat, name: name, price: Number(price), stock: Number(stock), image: "" }) });
+        Swal.fire({ title: 'บันทึกสำเร็จ!', icon: 'success', timer: 1500, showConfirmButton: false });
+        document.getElementById('mName').value = ''; document.getElementById('mPrice').value = ''; document.getElementById('mStock').value = '';
+        loadAdminOrders();
+      } catch(e) { Swal.fire('ข้อผิดพลาด!', 'บันทึกไม่สำเร็จ', 'error'); }
     }
   </script>
 </body>
