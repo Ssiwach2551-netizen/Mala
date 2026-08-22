@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - ระบบจัดการหลังร้าน</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; }</style>
+</head>
+<body class="p-4">
+
+  <!-- Overlay กดเปิดเสียง -->
+  <div id="startOverlay" class="fixed inset-0 bg-white z-[200] flex flex-col items-center justify-center">
+    <h1 class="text-3xl font-bold text-orange-500 mb-4">ระบบจัดการหลังร้าน</h1>
+    <button onclick="startAdmin()" class="bg-orange-500 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg">เข้าสู่ระบบ (เปิดเสียงแจ้งเตือน)</button>
+  </div>
+
+  <div class="max-w-6xl mx-auto">
+    <div class="flex justify-between items-center mb-6 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+      <div>
+        <h1 class="text-2xl font-bold text-orange-600">👨‍🍳 รายการสั่งอาหาร</h1>
+        <p class="text-sm text-slate-500">อัปเดตอัตโนมัติ</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-slate-400 font-bold uppercase">ยอดขายวันนี้</p>
+        <p id="totalSalesDisplay" class="text-2xl font-black text-green-500">0 ฿</p>
+      </div>
+    </div>
+
+    <div id="adminOrders" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+  </div>
+
+  <!-- เสียงเตือนแม่ค้า (เล่นครั้งเดียวต่อออเดอร์ใหม่) -->
+  <audio id="adminSound" src="https://files.catbox.moe/jqtp08.mp3" preload="auto"></audio>
+
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
+    let lastOrderCount = 0;
+
+    function startAdmin() {
+      document.getElementById('startOverlay').style.display = 'none';
+      document.getElementById('adminSound').play().catch(e=>{}); // เล่นเงียบๆ เพื่อ unlock audio browser
+      document.getElementById('adminSound').pause();
+      loadAdminOrders();
+      setInterval(loadAdminOrders, 8000);
+    }
+
+    async function loadAdminOrders() {
+      const res = await fetch(GAS_URL);
+      const data = await res.json();
+      
+      document.getElementById('totalSalesDisplay').innerText = data.totalSales + " ฿";
+      
+      const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Acknowledged');
+      
+      // ตรวจจับออเดอร์ใหม่เพื่อเล่นเสียง
+      if (active.length > lastOrderCount && lastOrderCount !== 0) {
+        document.getElementById('adminSound').play();
+        alert("🔔 มีออเดอร์ใหม่เข้ามาระบบ!");
+      }
+      lastOrderCount = active.length;
+
+      const c = document.getElementById('adminOrders'); c.innerHTML = '';
+      if (active.length === 0) return c.innerHTML = `<p class="col-span-full text-center text-slate-500 py-10 bg-white rounded-2xl">🎉 ว่างแล้ว ไม่มีออเดอร์ค้าง</p>`;
+
+      active.forEach(o => {
+        // เช็คว่าต้องรอตรวจโอนเงินไหม
+        const needVerify = o.paymentMethod === 'เงินโอน' && o.paymentStatus !== 'Paid';
+        const isCooking = o.status === 'Cooking';
+
+        c.innerHTML += `
+          <div class="bg-white border ${needVerify ? 'border-red-300' : isCooking ? 'border-orange-400' : 'border-slate-200'} rounded-2xl p-5 shadow-sm">
+            <div class="flex justify-between items-start mb-2">
+              <span class="text-2xl font-black ${isCooking ? 'text-orange-500' : 'text-slate-700'}">${o.orderId}</span>
+              <span class="bg-red-100 text-red-600 text-xs px-2 py-1 rounded font-bold border border-red-200">🌶️ ${o.spiciness}</span>
+            </div>
+            
+            <p class="font-bold text-slate-800 text-sm">รหัส: ${o.studentId} | ${o.class}</p>
+            <p class="text-sm text-slate-600 mb-3">${o.studentName}</p>
+            
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-100 text-sm text-slate-700 min-h-[4rem] mb-3">
+              ${o.items}
+            </div>
+            
+            <div class="flex justify-between items-center mb-4">
+              <span class="text-xs font-bold px-2 py-1 rounded ${o.paymentMethod === 'เงินสด' ? 'bg-slate-200 text-slate-600' : 'bg-blue-100 text-blue-600'}">${o.paymentMethod}</span>
+              <p class="text-lg font-bold text-green-600">${o.totalPrice} ฿</p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3">
+              ${needVerify ? `
+                <button onclick="updateData('${o.orderId}', 'payment', 'Paid')" class="bg-blue-500 text-white font-bold py-2 rounded-lg">ตรวจสอบ & รับยอดโอนแล้ว</button>
+              ` : !isCooking ? `
+                <button onclick="updateData('${o.orderId}', 'food', 'Cooking')" class="bg-orange-500 text-white font-bold py-2 rounded-lg">🔥 เริ่มทำอาหาร</button>
+              ` : `
+                <button onclick="updateData('${o.orderId}', 'food', 'Completed')" class="bg-green-500 text-white font-bold py-2 rounded-lg">✅ ทำเสร็จแล้ว (เรียกคิว)</button>
+              `}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    async function updateData(orderId, type, val) {
+      await fetch(GAS_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'updateStatus', orderId: orderId, type: type, value: val })
+      });
+      loadAdminOrders();
+    }
+  </script>
+</body>
+</html>
