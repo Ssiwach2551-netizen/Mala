@@ -3,131 +3,158 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ล่าหมามาแดก - Executive KDS & Stock</title>
+  <title>ล่าหมามาแดก - ระบบจัดการออเดอร์ & สต๊อก</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Prompt', 'Plus Jakarta Sans', sans-serif; background-color: #0b0f17; color: #f1f5f9; }
-    .swal2-popup { font-family: 'Prompt', sans-serif !important; border-radius: 1.25rem !important; background: #182232 !important; color: #fff !important; }
-    .glass-card { background: rgba(24, 34, 50, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.07); }
-    .glass-nav { background: rgba(11, 15, 23, 0.85); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
-    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; color: #1e293b; }
+    .swal2-popup { font-family: 'Prompt', sans-serif !important; border-radius: 1.25rem !important; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
   </style>
 </head>
-<body class="min-h-screen flex flex-col selection:bg-amber-500 selection:text-black">
+<body class="min-h-screen flex flex-col">
 
   <!-- Header Nav -->
-  <header class="glass-nav sticky top-0 z-40">
-    <div class="max-w-[1600px] mx-auto px-6 py-4 flex justify-between items-center">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-slate-950 font-black text-xl">
-          🔥
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-[1600px] mx-auto px-6 py-3.5 flex justify-between items-center">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-2xl bg-orange-500 flex items-center justify-center shadow-md shadow-orange-500/20 text-white font-black text-xl">
+          🍳
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <h1 class="text-base font-bold tracking-tight text-white">ล่าหมามาแดก</h1>
-            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Executive KDS</span>
+            <h1 class="text-lg font-black tracking-wide text-slate-800">ล่าหมามาแดก</h1>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-orange-50 text-orange-600 border border-orange-200">KDS & STOCK</span>
           </div>
-          <p class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Auto Refresh Active
+          <p class="text-[11px] text-slate-400 flex items-center gap-1.5 font-medium">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> อัปเดตข้อมูลอัตโนมัติ
           </p>
         </div>
       </div>
 
-      <!-- Center KPI Quick Stats -->
-      <div class="hidden md:flex items-center gap-6 bg-slate-900/80 px-5 py-2 rounded-2xl border border-slate-800">
-        <div class="text-center">
-          <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">รอปรุง</p>
-          <p id="kpi-pending" class="text-base font-bold text-amber-400">0</p>
-        </div>
-        <div class="w-px h-6 bg-slate-800"></div>
-        <div class="text-center">
-          <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">กำลังทำ</p>
-          <p id="kpi-cooking" class="text-base font-bold text-blue-400">0</p>
-        </div>
-        <div class="w-px h-6 bg-slate-800"></div>
-        <div class="text-center">
-          <p class="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">พร้อมเสิร์ฟ</p>
-          <p id="kpi-ready" class="text-base font-bold text-emerald-400">0</p>
-        </div>
-      </div>
-
       <!-- Action Buttons -->
-      <div class="flex items-center gap-3">
-        <button onclick="openStockModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 active:scale-95">
-          <span>📦</span> จัดการสต๊อก
+      <div class="flex items-center gap-2.5">
+        <button onclick="openStockModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95 shadow-sm">
+          <span>📦</span> จัดการสต๊อกสินค้า
         </button>
-        <button onclick="fetchData(true)" class="bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-lg shadow-amber-500/10 flex items-center gap-2 active:scale-95">
+        <button onclick="fetchData(true)" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-xl text-xs font-extrabold transition-all shadow-md shadow-orange-500/20 flex items-center gap-2 active:scale-95">
           <span id="refreshIcon">🔄</span> รีเฟรช
         </button>
       </div>
     </div>
   </header>
 
-  <!-- Kanban Grid Layout -->
-  <main class="flex-1 max-w-[1600px] w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+  <!-- Main Container -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto p-6 space-y-6">
     
-    <!-- Pending Column -->
-    <div class="glass-card rounded-2xl p-4 flex flex-col max-h-[calc(100vh-140px)]">
-      <div class="flex justify-between items-center pb-3 mb-3 border-b border-slate-800">
-        <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-          <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider">ออเดอร์ใหม่</h2>
+    <!-- KPI Summary Cards Section -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 mb-1">📝 รอปรุงอาหาร</p>
+          <p id="kpi-pending" class="text-2xl font-black text-amber-500">0</p>
         </div>
-        <span id="badge-Pending" class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">0</span>
+        <div class="w-11 h-11 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center text-xl font-bold border border-amber-100">
+          ⏳
+        </div>
       </div>
-      <div id="col-Pending" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[500px]"></div>
+      
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 mb-1">🔥 กำลังปรุง</p>
+          <p id="kpi-cooking" class="text-2xl font-black text-blue-500">0</p>
+        </div>
+        <div class="w-11 h-11 bg-blue-50 text-blue-500 rounded-2xl flex items-center justify-center text-xl font-bold border border-blue-100">
+          🍳
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 mb-1">🔔 พร้อมเสิร์ฟ</p>
+          <p id="kpi-ready" class="text-2xl font-black text-emerald-500">0</p>
+        </div>
+        <div class="w-11 h-11 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center text-xl font-bold border border-emerald-100">
+          ✅
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-2xl border border-slate-200/90 shadow-sm flex items-center justify-between">
+        <div>
+          <p class="text-xs font-bold text-slate-400 mb-1">📊 ออเดอร์ทั้งหมด</p>
+          <p id="kpi-total" class="text-2xl font-black text-slate-700">0</p>
+        </div>
+        <div class="w-11 h-11 bg-slate-50 text-slate-600 rounded-2xl flex items-center justify-center text-xl font-bold border border-slate-100">
+          📋
+        </div>
+      </div>
     </div>
 
-    <!-- Cooking Column -->
-    <div class="glass-card rounded-2xl p-4 flex flex-col max-h-[calc(100vh-140px)]">
-      <div class="flex justify-between items-center pb-3 mb-3 border-b border-slate-800">
-        <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-blue-400 animate-pulse"></span>
-          <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider">กำลังปรุงอาหาร</h2>
+    <!-- Kanban Columns Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      
+      <!-- Pending Column -->
+      <div class="bg-slate-100/80 rounded-3xl border border-slate-200 p-4 flex flex-col max-h-[calc(100vh-230px)]">
+        <div class="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 shadow-sm mb-4 flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+            <h2 class="text-sm font-extrabold text-slate-700">ออเดอร์ใหม่ (Pending)</h2>
+          </div>
+          <span id="badge-Pending" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-700">0</span>
         </div>
-        <span id="badge-Cooking" class="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20">0</span>
+        <div id="col-Pending" class="space-y-3.5 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[450px]"></div>
       </div>
-      <div id="col-Cooking" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[500px]"></div>
-    </div>
 
-    <!-- Ready Column -->
-    <div class="glass-card rounded-2xl p-4 flex flex-col max-h-[calc(100vh-140px)]">
-      <div class="flex justify-between items-center pb-3 mb-3 border-b border-slate-800">
-        <div class="flex items-center gap-2.5">
-          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
-          <h2 class="text-sm font-bold text-slate-200 uppercase tracking-wider">พร้อมเสิร์ฟ</h2>
+      <!-- Cooking Column -->
+      <div class="bg-slate-100/80 rounded-3xl border border-slate-200 p-4 flex flex-col max-h-[calc(100vh-230px)]">
+        <div class="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 shadow-sm mb-4 flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-blue-500 animate-pulse"></span>
+            <h2 class="text-sm font-extrabold text-slate-700">กำลังปรุง (Cooking)</h2>
+          </div>
+          <span id="badge-Cooking" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700">0</span>
         </div>
-        <span id="badge-Ready" class="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">0</span>
+        <div id="col-Cooking" class="space-y-3.5 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[450px]"></div>
       </div>
-      <div id="col-Ready" class="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[500px]"></div>
-    </div>
 
+      <!-- Ready Column -->
+      <div class="bg-slate-100/80 rounded-3xl border border-slate-200 p-4 flex flex-col max-h-[calc(100vh-230px)]">
+        <div class="bg-white px-4 py-3 rounded-2xl border border-slate-200/80 shadow-sm mb-4 flex justify-between items-center">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+            <h2 class="text-sm font-extrabold text-slate-700">พร้อมเสิร์ฟ (Ready)</h2>
+          </div>
+          <span id="badge-Ready" class="text-xs font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700">0</span>
+        </div>
+        <div id="col-Ready" class="space-y-3.5 overflow-y-auto custom-scrollbar pr-1 flex-1 min-h-[450px]"></div>
+      </div>
+
+    </div>
   </main>
 
   <!-- Modal: Stock Management -->
-  <div id="stockModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="glass-card w-full max-w-2xl rounded-2xl border border-slate-800 overflow-hidden flex flex-col max-h-[85vh]">
-      <div class="p-5 border-b border-slate-800 flex justify-between items-center bg-slate-900/50">
+  <div id="stockModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]">
+      <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">📦</div>
+          <div class="w-9 h-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center font-bold">📦</div>
           <div>
-            <h3 class="font-bold text-white text-base">จัดการสต๊อกสินค้า</h3>
-            <p class="text-xs text-slate-400">อัปเดตจำนวนสินค้าที่เหลือในระบบ</p>
+            <h3 class="font-extrabold text-slate-800 text-base">จัดการสต๊อกสินค้า</h3>
+            <p class="text-xs text-slate-400">ปรับเพิ่ม-ลด หรือแก้ไขจำนวนสินค้าที่มีในสต๊อก</p>
           </div>
         </div>
-        <button onclick="closeStockModal()" class="text-slate-400 hover:text-white p-2 text-lg">✕</button>
+        <button onclick="closeStockModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm transition-all">✕</button>
       </div>
       
       <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-3" id="menuStockList">
-        <p class="text-center text-slate-500 text-sm py-8">กำลังโหลดข้อมูลเมนู...</p>
+        <p class="text-center text-slate-400 text-sm py-8">กำลังโหลดรายการสต๊อก...</p>
       </div>
 
-      <div class="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end">
-        <button onclick="closeStockModal()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs px-5 py-2.5 rounded-xl transition-all">
+      <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+        <button onclick="closeStockModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold text-xs px-5 py-2.5 rounded-xl transition-all">
           ปิดหน้าต่าง
         </button>
       </div>
@@ -156,7 +183,7 @@
       if (showSpinner) document.getElementById('refreshIcon').classList.add('animate-spin');
 
       try {
-        // Fetch Admin Orders
+        // ดึงรายการ ออเดอร์
         const resOrders = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({ action: 'getAdminOrders' })
@@ -168,7 +195,7 @@
           checkNewOrders();
         }
 
-        // Fetch Menus (for stock)
+        // ดึงรายการ เมนู (สำหรับจัดการสต๊อก)
         const resMenu = await fetch(GAS_URL);
         const dataMenu = await resMenu.json();
         if (dataMenu.menus) {
@@ -200,52 +227,56 @@
         const isTransfer = (order.paymentMethod === 'เงินโอน' || order.paymentMethod === 'Paid');
         const isPaid = (order.paymentStatus === 'Paid');
         
-        // Badge การชำระเงิน
+        // Badge สถานะชำระเงิน
         let payBadge = isTransfer
           ? (isPaid 
-              ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">โอนแล้ว</span>`
-              : `<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">รอตรวจสลิป</span>`)
-          : `<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">เงินสด</span>`;
+              ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">💳 โอนแล้ว</span>`
+              : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-200">💳 รอตรวจสลิป</span>`)
+          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">💵 เงินสด</span>`;
 
         // ปุ่มดูสลิป
         const slipBtn = isTransfer && order.slipImage 
-          ? `<button onclick="viewSlip('${order.orderId}')" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-xl border border-slate-700 font-medium transition-all flex items-center justify-center gap-1.5">📸 ตรวจสลิปโอนเงิน</button>`
-          : (isTransfer ? `<div class="mt-2 text-center text-[11px] text-slate-500 bg-slate-900/40 py-1.5 rounded-xl border border-slate-800">ยังไม่แนบสลิป</div>` : '');
+          ? `<button onclick="viewSlip('${order.orderId}')" class="w-full mt-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs py-2 rounded-xl font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95">📸 ตรวจสลิปโอนเงิน</button>`
+          : (isTransfer ? `<div class="mt-2.5 text-center text-[11px] font-bold text-amber-600 bg-amber-50 py-1.5 rounded-xl border border-amber-200">⏳ ยังไม่แนบสลิป</div>` : '');
 
-        // ปุ่มเปลี่ยนสถานะ
+        // ปุ่มดำเนินการ
         let actionBtn = '';
         if (order.status === 'Pending') {
-          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Cooking')" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-blue-600/10">เริ่มปรุงอาหาร ➔</button>`;
+          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Cooking')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-blue-500/20 active:scale-95">🍳 เริ่มปรุงอาหาร ➔</button>`;
         } else if (order.status === 'Cooking') {
-          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Ready')" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-emerald-600/10">ปรุงเสร็จแล้ว ➔</button>`;
+          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Ready')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs py-2.5 rounded-xl transition-all shadow-md shadow-emerald-500/20 active:scale-95">🔔 ปรุงเสร็จแล้ว ➔</button>`;
         } else if (order.status === 'Ready') {
-          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Completed')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs py-2.5 rounded-xl border border-slate-700 transition-all">ลูกค้ารับเรียบร้อย</button>`;
+          actionBtn = `<button onclick="changeStatus('${order.orderId}', 'Completed')" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 font-extrabold text-xs py-2.5 rounded-xl transition-all active:scale-95">✅ ลูกค้ารับเรียบร้อย</button>`;
         }
 
         const card = `
-          <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-4 space-y-3 hover:border-slate-700 transition-all">
-            <div class="flex justify-between items-start">
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-sm hover:shadow-md transition-all">
+            <!-- Header -->
+            <div class="flex justify-between items-start pb-2 border-b border-slate-100">
               <div class="flex items-center gap-2">
-                <span class="text-xs font-black text-amber-400 bg-amber-400/10 px-2 py-0.5 rounded border border-amber-400/20">#${order.orderId}</span>
+                <span class="text-xs font-black text-white bg-slate-900 px-2.5 py-0.5 rounded-md">#${order.orderId}</span>
                 ${payBadge}
               </div>
-              <span class="text-sm font-bold text-white">${order.totalPrice} ฿</span>
+              <span class="text-base font-black text-red-600">${order.totalPrice} ฿</span>
             </div>
 
+            <!-- Detail -->
             <div class="flex justify-between items-center text-xs">
-              <span class="font-semibold text-slate-200">👤 ${order.studentName || 'ไม่ระบุชื่อ'}</span>
-              <span class="text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded text-[11px]">🌶️ ${order.spiciness}</span>
+              <span class="font-bold text-slate-800">👤 ${order.studentName || 'ไม่ระบุชื่อ'}</span>
+              <span class="text-red-600 font-bold bg-red-50 border border-red-100 px-2 py-0.5 rounded-md text-[11px]">🌶️ ${order.spiciness || 'ปกติ'}</span>
             </div>
 
-            <div class="bg-slate-950/60 p-3 rounded-lg border border-slate-800/80 text-xs text-slate-300 whitespace-pre-wrap leading-relaxed font-mono">
+            <!-- Menu List -->
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">
               ${order.items}
             </div>
 
             ${slipBtn}
 
+            <!-- Bottom Actions -->
             <div class="flex items-center gap-2 pt-1">
               <div class="flex-1">${actionBtn}</div>
-              <button onclick="cancelOrder('${order.orderId}')" title="ยกเลิกออเดอร์" class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl border border-transparent hover:border-red-500/20 transition-all">
+              <button onclick="cancelOrder('${order.orderId}')" title="ยกเลิกออเดอร์" class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all border border-transparent hover:border-red-100">
                 🗑️
               </button>
             </div>
@@ -255,7 +286,7 @@
         cols[order.status] += card;
       });
 
-      // Update counters
+      // Update Header Numbers
       document.getElementById('badge-Pending').innerText = counts['Pending'];
       document.getElementById('badge-Cooking').innerText = counts['Cooking'];
       document.getElementById('badge-Ready').innerText = counts['Ready'];
@@ -263,8 +294,9 @@
       document.getElementById('kpi-pending').innerText = counts['Pending'];
       document.getElementById('kpi-cooking').innerText = counts['Cooking'];
       document.getElementById('kpi-ready').innerText = counts['Ready'];
+      document.getElementById('kpi-total').innerText = currentOrders.length;
 
-      const empty = (text) => `<div class="h-44 flex flex-col items-center justify-center text-slate-600 text-xs gap-2"><span class="text-xl opacity-40">☕</span>${text}</div>`;
+      const empty = (text) => `<div class="h-44 flex flex-col items-center justify-center text-slate-400 text-xs font-bold gap-2"><span class="text-2xl">🍃</span>${text}</div>`;
       document.getElementById('col-Pending').innerHTML = cols['Pending'] || empty('ไม่มีออเดอร์ใหม่');
       document.getElementById('col-Cooking').innerHTML = cols['Cooking'] || empty('ไม่มีรายการกำลังปรุง');
       document.getElementById('col-Ready').innerHTML = cols['Ready'] || empty('ไม่มีรายการรอรับ');
@@ -283,25 +315,25 @@
     function renderStockList() {
       const container = document.getElementById('menuStockList');
       if (!currentMenus || currentMenus.length === 0) {
-        container.innerHTML = `<p class="text-center text-slate-500 text-sm py-8">ไม่พบรายการเมนู</p>`;
+        container.innerHTML = `<p class="text-center text-slate-400 text-sm py-8">ไม่พบรายการเมนู</p>`;
         return;
       }
 
       container.innerHTML = currentMenus.map((item, idx) => `
-        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between gap-4">
+        <div class="bg-white p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-4 shadow-sm">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-lg border border-slate-700">🍜</div>
+            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center text-lg border border-orange-100 font-bold">🍜</div>
             <div>
-              <p class="font-bold text-sm text-white">${item.name}</p>
-              <p class="text-xs text-slate-400">${item.category} • <span class="text-amber-400 font-semibold">${item.price} ฿</span></p>
+              <p class="font-bold text-sm text-slate-800">${item.name}</p>
+              <p class="text-xs text-slate-400 font-medium">${item.category} • <span class="text-orange-600 font-bold">${item.price} ฿</span></p>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <button onclick="updateStockMemory(${idx}, -1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 active:scale-95 transition-all">-</button>
-            <input type="number" id="stock-input-${idx}" value="${item.stock}" onchange="updateStockInput(${idx}, this.value)" class="w-16 bg-slate-950 border border-slate-800 rounded-lg text-center font-bold text-sm py-1 text-amber-400 focus:outline-none focus:border-amber-500">
-            <button onclick="updateStockMemory(${idx}, 1)" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 active:scale-95 transition-all">+</button>
-            <button onclick="saveStockToServer(${idx})" class="ml-2 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-bold transition-all active:scale-95">
+            <button onclick="updateStockMemory(${idx}, -1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm active:scale-95 transition-all">-</button>
+            <input type="number" id="stock-input-${idx}" value="${item.stock}" onchange="updateStockInput(${idx}, this.value)" class="w-16 bg-slate-50 border border-slate-200 rounded-xl text-center font-bold text-sm py-1.5 text-slate-800 focus:outline-none focus:border-orange-500">
+            <button onclick="updateStockMemory(${idx}, 1)" class="w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm active:scale-95 transition-all">+</button>
+            <button onclick="saveStockToServer(${idx})" class="ml-2 bg-orange-500 hover:bg-orange-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-95">
               บันทึก
             </button>
           </div>
@@ -323,7 +355,7 @@
     async function saveStockToServer(index) {
       const item = currentMenus[index];
       try {
-        Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        Swal.fire({ title: 'กำลังบันทึกข้อมูล...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
         const res = await fetch(GAS_URL, {
           method: 'POST',
           body: JSON.stringify({
@@ -337,28 +369,28 @@
         });
         const data = await res.json();
         if (data.status === 'success') {
-          Swal.fire({ icon: 'success', title: `อัปเดตสต๊อก ${item.name} เรียบร้อย`, timer: 1200, showConfirmButton: false });
+          Swal.fire({ icon: 'success', title: `อัปเดตสต๊อก ${item.name} แล้ว`, timer: 1200, showConfirmButton: false });
         }
       } catch (e) {
-        Swal.fire('Error', 'บันทึกสต๊อกไม่สำเร็จ', 'error');
+        Swal.fire('ข้อผิดพลาด', 'บันทึกสต๊อกไม่สำเร็จ', 'error');
       }
     }
 
-    // Slip View
+    // View Slip
     function viewSlip(orderId) {
       const order = currentOrders.find(o => o.orderId === orderId);
       if (order && order.slipImage) {
         Swal.fire({
           title: `สลิปโอนเงิน #${orderId}`,
-          html: `<p class="text-xs text-slate-400 mb-3">ลูกค้า: <b class="text-white">${order.studentName}</b> | ยอด: <b class="text-amber-400">${order.totalPrice} ฿</b></p>`,
+          html: `<p class="text-xs text-slate-500 mb-3">ลูกค้า: <b>${order.studentName}</b> | ยอดเงิน: <b class="text-emerald-600">${order.totalPrice} ฿</b></p>`,
           imageUrl: order.slipImage,
           imageAlt: 'สลิปโอนเงิน',
-          imageStyle: 'max-height: 400px; border-radius: 0.75rem; object-fit: contain;',
+          imageStyle: 'max-height: 400px; border-radius: 1rem; object-fit: contain;',
           showCancelButton: true,
-          confirmButtonText: '✅ สลิปถูกต้อง (Paid)',
+          confirmButtonText: '✅ ยืนยันสลิปถูกต้อง',
           cancelButtonText: 'ปิด',
           confirmButtonColor: '#10b981',
-          cancelButtonColor: '#334155'
+          cancelButtonColor: '#64748b'
         }).then((res) => {
           if (res.isConfirmed) changePaymentStatus(orderId, 'Paid');
         });
@@ -395,11 +427,11 @@
     async function cancelOrder(orderId) {
       const res = await Swal.fire({
         title: `ยกเลิกออเดอร์ #${orderId}?`,
-        text: 'ระบบจะคืนสต๊อกอาหารให้อัตโนมัติ',
+        text: 'ระบบจะคืนจำนวนสินค้าเข้าสต๊อกให้อัตโนมัติ',
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'ยืนยันยกเลิก',
-        cancelButtonText: 'ยกเลิก',
+        cancelButtonText: 'ถอยกลับ',
         confirmButtonColor: '#ef4444'
       });
       if (res.isConfirmed) changeStatus(orderId, 'Cancelled');
