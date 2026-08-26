@@ -14,7 +14,6 @@
 <body class="p-4 sm:p-6">
 
     <div class="max-w-5xl mx-auto">
-        <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
             <div>
                 <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
@@ -22,22 +21,19 @@
                 </h1>
                 <p class="text-xs text-gray-400 mt-0.5" id="last-update">กำลังเชื่อมต่อระบบ...</p>
             </div>
-            
             <div class="flex items-center gap-3">
-                <!-- ปุ่มเปิด/ปิดเสียง เพื่อให้ผ่านนโยบาย Autoplay Policy ของเบราว์เซอร์ -->
                 <button id="sound-toggle-btn" onclick="toggleSoundPermission()" class="px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 hover:bg-gray-200 transition flex items-center gap-1.5">
                     <span id="sound-icon">🔕</span> <span id="sound-text">คลิกเพื่อเปิดเสียงแจ้งเตือน</span>
                 </button>
             </div>
         </div>
 
-        <!-- Order Table -->
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm whitespace-nowrap">
                     <thead class="bg-red-50/50 text-gray-600 border-b border-gray-100">
                         <tr>
-                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">ชื่อ / ห้อง</th>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">คิว / ข้อมูล</th>
                             <th class="px-4 py-3.5 font-semibold text-xs text-red-900">รายการที่สั่ง</th>
                             <th class="px-4 py-3.5 font-semibold text-xs text-red-900">ยอดเงิน / สลิป</th>
                             <th class="px-4 py-3.5 font-semibold text-xs text-red-900">สถานะปัจจุบัน</th>
@@ -60,7 +56,6 @@
         let isFirstFetch = true;
         const alertSound = new Audio('https://files.catbox.moe/7s5kwu.mp3');
 
-        // ฟังก์ชั่นขอรับสิทธิ์เล่นเสียงจากการกดของผู้ใช้
         function toggleSoundPermission() {
             soundAllowed = !soundAllowed;
             const btn = document.getElementById('sound-toggle-btn');
@@ -68,21 +63,13 @@
             const text = document.getElementById('sound-text');
 
             if(soundAllowed) {
-                // ทดลองเล่นและหยุดเสียงทันทีเพื่อปลดล็อกสิทธิ์ Autoplay
-                alertSound.play().then(() => {
-                    alertSound.pause();
-                    alertSound.currentTime = 0;
-                }).catch(e => console.log('Audio error:', e));
-
-                btn.className = 'px-3.5 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:bg-red-700 transition flex items-center gap-1.5';
-                icon.innerText = '🔔';
-                text.innerText = 'ระบบเสียงเปิดอยู่';
-                
-                Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'เปิดระบบเสียงแจ้งเตือนเรียบร้อย', showConfirmButton: false, timer: 2000});
+                alertSound.play().then(() => { alertSound.pause(); alertSound.currentTime = 0; }).catch(e => {});
+                btn.className = 'px-3.5 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:bg-red-700 flex items-center gap-1.5';
+                icon.innerText = '🔔'; text.innerText = 'ระบบเสียงเปิดอยู่';
+                Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'เปิดระบบเสียงแล้ว', showConfirmButton: false, timer: 1500});
             } else {
-                btn.className = 'px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 hover:bg-gray-200 transition flex items-center gap-1.5';
-                icon.innerText = '🔕';
-                text.innerText = 'เสียงถูกปิดอยู่ (คลิกเปิด)';
+                btn.className = 'px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 hover:bg-gray-200 flex items-center gap-1.5';
+                icon.innerText = '🔕'; text.innerText = 'เสียงถูกปิดอยู่ (คลิกเปิด)';
             }
         }
 
@@ -92,37 +79,21 @@
                 const data = await res.json();
                 
                 if(data.status === 'success') {
-                    // กรองเฉพาะออเดอร์ที่ยังไม่เสร็จ
-                    const activeOrders = data.data.filter(o => o.Status !== 'เสร็จแล้วมารับได้').reverse();
+                    // กรองเฉพาะออเดอร์ที่ยังไม่ปิดจ๊อบ (รับอาหารแล้ว หรือ ยกเลิก จะไม่แสดง)
+                    const activeOrders = data.data.filter(o => o.Status !== 'รับอาหารแล้ว' && o.Status !== 'ยกเลิก').reverse();
                     
                     let hasNewOrder = false;
-
                     activeOrders.forEach(order => {
                         if(!knownOrderIds.has(order.OrderID)) {
-                            if(!isFirstFetch) {
-                                hasNewOrder = true;
-                            }
+                            if(!isFirstFetch) hasNewOrder = true;
                             knownOrderIds.add(order.OrderID);
                         }
                     });
 
-                    if(hasNewOrder) {
-                        if(soundAllowed) {
-                            alertSound.currentTime = 0;
-                            alertSound.play().catch(err => console.log("Sound play blocked:", err));
-                        }
-                        
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'warning',
-                            title: '🔥 มีออเดอร์ใหม่เข้ามา!',
-                            text: 'กรุณาตรวจสอบรายการอาหาร',
-                            showConfirmButton: false,
-                            timer: 4000,
-                            background: '#DC2626',
-                            color: '#ffffff'
-                        });
+                    if(hasNewOrder && soundAllowed) {
+                        alertSound.currentTime = 0;
+                        alertSound.play().catch(e => {});
+                        Swal.fire({toast: true, position: 'top-end', icon: 'warning', title: '🔥 มีออเดอร์ใหม่เข้ามา!', showConfirmButton: false, timer: 4000, background: '#DC2626', color: '#fff'});
                     }
 
                     isFirstFetch = false;
@@ -132,7 +103,7 @@
                     document.getElementById('last-update').innerText = `อัปเดตล่าสุด: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} น.`;
                 }
             } catch (error) {
-                console.error("Error fetching orders:", error);
+                console.error("Error fetching orders");
             }
         }
 
@@ -160,8 +131,9 @@
                 tbody.innerHTML += `
                     <tr class="hover:bg-gray-50/80 transition">
                         <td class="px-4 py-4">
+                            <div class="text-lg font-bold text-red-600 mb-1">คิวที่ ${order.OrderID}</div>
                             <div class="font-bold text-gray-800 text-sm">${order.nikeName}</div>
-                            <div class="text-xs text-red-600 font-medium">ห้อง ${order.Class}</div>
+                            <div class="text-xs text-gray-500 font-medium">ห้อง ${order.Class}</div>
                         </td>
                         <td class="px-4 py-4 whitespace-normal text-xs leading-relaxed">
                             ${itemsHtml}
@@ -180,8 +152,10 @@
                         </td>
                         <td class="px-4 py-4">
                             ${order.Status === 'รอรับออเดอร์' 
-                                ? `<button onclick="updateStatus('${order.OrderID}', 'กำลังทอด')" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-gray-800 shadow-sm transition">รับออเดอร์ & ทอด</button>` 
-                                : `<button onclick="updateStatus('${order.OrderID}', 'เสร็จแล้วมารับได้')" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-emerald-700 shadow-sm transition">ทอดเสร็จแล้ว</button>`
+                                ? `<button onclick="updateStatus('${order.OrderID}', 'กำลังทอด')" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-gray-800 shadow-sm w-full mb-1">รับออเดอร์ & ทอด</button>` 
+                                : (order.Status === 'กำลังทอด' 
+                                    ? `<button onclick="updateStatus('${order.OrderID}', 'เสร็จแล้วมารับได้')" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-emerald-700 shadow-sm w-full mb-1">ทอดเสร็จแล้ว</button>` 
+                                    : `<button onclick="updateStatus('${order.OrderID}', 'รับอาหารแล้ว')" class="bg-gray-200 text-gray-700 px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-gray-300 w-full mb-1">ลูกค้ารับแล้ว (ปิดจ๊อบ)</button>`)
                             }
                         </td>
                     </tr>
@@ -189,36 +163,21 @@
             });
         }
 
-        function viewSlip(url) {
-            Swal.fire({
-                title: 'สลิปการโอนเงิน',
-                imageUrl: url,
-                imageAlt: 'สลิปโอนเงิน',
-                confirmButtonText: 'ปิดหน้าต่าง',
-                confirmButtonColor: '#111827'
-            });
-        }
+        function viewSlip(url) { Swal.fire({ title: 'สลิปการโอนเงิน', imageUrl: url, imageAlt: 'สลิป', confirmButtonText: 'ปิดหน้าต่าง', confirmButtonColor: '#111827' }); }
 
         async function updateStatus(orderId, newStatus) {
-            Swal.fire({title: 'กำลังอัปเดตสถานะ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            Swal.fire({title: 'อัปเดตสถานะ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({ action: 'updateStatus', orderId: orderId, newStatus: newStatus })
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', orderId: orderId, newStatus: newStatus }) });
                 const data = await res.json();
                 if(data.status === 'success') {
                     Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'อัปเดตสำเร็จ', showConfirmButton: false, timer: 1500});
                     fetchOrders();
                 }
-            } catch (err) {
-                Swal.fire('ข้อผิดพลาด', 'อัปเดตไม่สำเร็จ', 'error');
-            }
+            } catch (err) { Swal.fire('ข้อผิดพลาด', 'อัปเดตไม่สำเร็จ', 'error'); }
         }
 
-        // เริ่มต้นการทำงาน ดึงข้อมูลทุกๆ 8 วินาที
-        fetchOrders();
-        setInterval(fetchOrders, 8000);
+        fetchOrders(); setInterval(fetchOrders, 8000);
     </script>
 </body>
 </html>
