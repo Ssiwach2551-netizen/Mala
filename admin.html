@@ -1,205 +1,151 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ล่าหมามาแดก - หน้าจอแม่ค้า (Admin)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .swal2-popup { font-family: 'Prompt', sans-serif !important; border-radius: 1.5rem !important; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .glass-header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบแม่ค้า| ล่าหมามาแดก</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+    </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col">
+<body class="p-6">
 
-  <!-- หน้าจอเปิดเสียงแจ้งเตือน (กันเบราว์เซอร์บล็อกเสียง) -->
-  <div id="soundUnlockOverlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-6 text-center">
-    <div class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full space-y-5">
-      <div class="text-6xl mb-2 animate-bounce">👩‍🍳</div>
-      <h2 class="text-2xl font-black text-slate-800">ระบบจัดการออเดอร์</h2>
-      <p class="text-sm text-slate-500">กดปุ่มด้านล่างเพื่อเปิดระบบและอนุญาตให้เสียงแจ้งเตือนทำงาน</p>
-      <button onclick="startAdminSystem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-base">
-        เข้าสู่ระบบแม่ค้า 🚀
-      </button>
-    </div>
-  </div>
-
-  <!-- Header -->
-  <div class="glass-header text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center border-b border-slate-700">
-    <div>
-      <h1 class="text-xl font-black tracking-wide">ล่าหมามาแดก <span class="text-slate-400 font-medium text-sm">| Admin Panel</span></h1>
-      <p class="text-[10px] text-emerald-400 font-bold mt-0.5">🟢 อัปเดตอัตโนมัติทุก 10 วินาที</p>
-    </div>
-    <button onclick="fetchOrders()" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95">
-      🔄 ดึงข้อมูลล่าสุด
-    </button>
-  </div>
-
-  <!-- Board -->
-  <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-5 flex-1 overflow-hidden max-w-7xl mx-auto w-full">
-    
-    <!-- Column: ออเดอร์ใหม่ -->
-    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
-      <div class="bg-orange-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
-        <span>📝 ออเดอร์ใหม่</span>
-        <span id="count-Pending" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
-      </div>
-      <div id="col-Pending" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
-    </div>
-
-    <!-- Column: กำลังทำ -->
-    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
-      <div class="bg-blue-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
-        <span>🍳 กำลังปรุง</span>
-        <span id="count-Cooking" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
-      </div>
-      <div id="col-Cooking" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
-    </div>
-
-    <!-- Column: พร้อมเสิร์ฟ -->
-    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
-      <div class="bg-emerald-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
-        <span>🔔 พร้อมเสิร์ฟ</span>
-        <span id="count-Ready" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
-      </div>
-      <div id="col-Ready" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
-    </div>
-
-  </div>
-
-  <!-- เสียงเตือนออเดอร์ใหม่ -->
-  <audio id="newOrderSound" src="https://files.catbox.moe/7s5kwu.mp3" preload="auto"></audio>
-
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec"; // 👈 วางลิงก์ Web App
-    
-    let currentOrders = [];
-    let previousPendingCount = 0;
-    let autoRefreshInterval = null;
-
-    function startAdminSystem() {
-      document.getElementById('soundUnlockOverlay').classList.add('hidden');
-      const sound = document.getElementById('newOrderSound');
-      sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(() => {});
-      
-      fetchOrders();
-      autoRefreshInterval = setInterval(fetchOrders, 10000);
-    }
-
-    async function fetchOrders() {
-      try {
-        const res = await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'getAdminOrders' })
-        });
-        const data = await res.json();
-        
-        if (data.status === 'success') {
-          currentOrders = data.orders;
-          renderOrders();
-          checkNewOrders();
-        }
-      } catch (e) {
-        console.error('Error fetching orders:', e);
-      }
-    }
-
-    function checkNewOrders() {
-      const pendingCount = currentOrders.filter(o => o.status === 'Pending').length;
-      if (pendingCount > previousPendingCount) {
-        document.getElementById('newOrderSound').play().catch(e => console.log('Sound blocked:', e));
-      }
-      previousPendingCount = pendingCount;
-    }
-
-    function renderOrders() {
-      const cols = { 'Pending': '', 'Cooking': '', 'Ready': '' };
-      const counts = { 'Pending': 0, 'Cooking': 0, 'Ready': 0 };
-
-      currentOrders.forEach(order => {
-        if (!cols.hasOwnProperty(order.status)) return; 
-
-        counts[order.status]++;
-        const isTransferred = (order.paymentMethod === 'เงินโอน' || order.paymentMethod === 'Paid');
-        
-        const slipButton = isTransferred && order.slipImage 
-          ? `<button onclick="viewSlip('${order.orderId}')" class="mt-2 w-full bg-slate-800 text-white text-[11px] py-2 rounded-xl font-bold flex items-center justify-center gap-1 hover:bg-slate-700 active:scale-95 transition-transform">📸 ตรวจสอบสลิปโอนเงิน</button>` 
-          : `<div class="mt-2 text-center text-[11px] font-bold text-orange-600 bg-orange-50 py-2 rounded-xl border border-orange-200">💵 จ่ายเงินสด / รอสลิป</div>`;
-
-        let actionButton = '';
-        if (order.status === 'Pending') {
-          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Cooking')" class="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white font-black text-xs py-3 rounded-xl shadow-md transition-all active:scale-95">➡️ เริ่มปรุงอาหาร</button>`;
-        } else if (order.status === 'Cooking') {
-          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Ready')" class="mt-3 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs py-3 rounded-xl shadow-md transition-all active:scale-95">✅ ปรุงเสร็จแล้ว</button>`;
-        } else if (order.status === 'Ready') {
-          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Completed')" class="mt-3 w-full bg-slate-300 hover:bg-slate-400 text-slate-700 font-black text-xs py-3 rounded-xl transition-all active:scale-95">ลบออก (รับแล้ว)</button>`;
-        }
-
-        const card = `
-          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
-            <div class="flex justify-between items-start mb-2">
-              <span class="bg-slate-800 text-white text-[10px] font-black px-2.5 py-1 rounded-lg">#${order.orderId}</span>
-              <span class="text-base font-black text-emerald-600">${order.totalPrice} ฿</span>
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold">จัดการออเดอร์</h1>
+            <div class="flex items-center gap-2">
+                <span class="relative flex h-3 w-3">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                <span class="text-sm text-gray-500" id="last-update">อัปเดตล่าสุด: กำลังโหลด...</span>
             </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left text-sm whitespace-nowrap">
+                <thead class="bg-gray-50 text-gray-600 border-b">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">ชื่อ/ห้อง</th>
+                        <th class="px-4 py-3 font-medium">รายการอาหาร</th>
+                        <th class="px-4 py-3 font-medium">ยอด/ชำระเงิน</th>
+                        <th class="px-4 py-3 font-medium">สถานะ</th>
+                        <th class="px-4 py-3 font-medium">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-orders" class="divide-y divide-gray-100">
+                    <tr><td colspan="5" class="text-center py-8 text-gray-500">กำลังโหลดข้อมูล...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwYPwixCzaWRagRdkkfO3Na3z62MBtfaJaCzJh5ZN0WA3eTgdakM68pEiLRQMOjHFC3fQ/exec';
+        let lastOrderCount = 0;
+        const alertSound = new Audio('https://files.catbox.moe/7s5kwu.mp3');
+
+        async function fetchOrders() {
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'getOrders'}) });
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    // กรองเฉพาะออเดอร์ที่ยังไม่เสร็จ (หรือต้องการแสดงทั้งหมด ให้เอา .filter ออก)
+                    const activeOrders = data.data.filter(o => o.Status !== 'เสร็จแล้วมารับได้').reverse();
+                    
+                    if(activeOrders.length > lastOrderCount && lastOrderCount !== 0) {
+                        alertSound.play();
+                        Swal.fire({toast: true, position: 'top-end', icon: 'info', title: 'มีออเดอร์ใหม่เข้า!', showConfirmButton: false, timer: 3000});
+                    }
+                    lastOrderCount = activeOrders.length;
+                    
+                    renderOrders(activeOrders);
+                    
+                    const now = new Date();
+                    document.getElementById('last-update').innerText = `อัปเดตล่าสุด: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} น.`;
+                }
+            } catch (error) {
+                console.error("Error fetching orders");
+            }
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.getElementById('admin-orders');
+            tbody.innerHTML = '';
             
-            <p class="font-bold text-sm text-slate-800 truncate">👤 ${order.studentName}</p>
-            <p class="text-[10px] text-slate-500 font-medium mb-1">ชั้น/โต๊ะ: ${order.class}</p>
-            
-            <span class="text-[10px] text-red-600 font-bold bg-red-50 inline-block px-2 py-1 rounded-md mb-2 border border-red-100">🌶️ ${order.spiciness}</span>
-            
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-700 font-medium mb-2 whitespace-pre-wrap leading-relaxed">${order.items}</div>
-            
-            ${slipButton}
-            ${actionButton}
-          </div>
-        `;
+            if(orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">ไม่มีออเดอร์ค้างอยู่</td></tr>';
+                return;
+            }
 
-        cols[order.status] += card;
-      });
+            orders.forEach(order => {
+                let itemsHtml = '';
+                try {
+                    const items = JSON.parse(order.Items);
+                    itemsHtml = items.map(i => `${i.name} (x${i.qty})`).join('<br>');
+                } catch(e) { itemsHtml = order.Items; }
 
-      // Update HTML and Counts
-      ['Pending', 'Cooking', 'Ready'].forEach(status => {
-        document.getElementById(`col-${status}`).innerHTML = cols[status] || `<div class="h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl"><p class="text-xs text-slate-400 font-medium">ไม่มีออเดอร์</p></div>`;
-        document.getElementById(`count-${status}`).innerText = counts[status];
-      });
-    }
+                let slipBtn = '';
+                if(order['Slip URL']) {
+                    slipBtn = `<a href="${order['Slip URL']}" target="_blank" class="text-blue-500 underline text-xs block mt-1">ดูสลิป</a>`;
+                }
 
-    function viewSlip(orderId) {
-      const order = currentOrders.find(o => o.orderId === orderId);
-      if (order && order.slipImage) {
-        Swal.fire({
-          title: `<span class="text-base font-black">สลิปออเดอร์ #${orderId}</span>`,
-          imageUrl: order.slipImage,
-          imageAlt: 'Slip Image',
-          confirmButtonText: 'ปิด',
-          confirmButtonColor: '#0f172a'
-        });
-      } else {
-        Swal.fire('ข้อผิดพลาด', 'ไม่พบรูปสลิปของออเดอร์นี้', 'error');
-      }
-    }
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-4 py-4">
+                            <div class="font-medium">${order.nikeName}</div>
+                            <div class="text-gray-500 text-xs">ห้อง ${order.Class}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-normal">
+                            ${itemsHtml}
+                            <div class="text-red-500 text-xs mt-1">🌶 ${order.Spiciness}</div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="font-medium">฿${order.TotalPrice}</div>
+                            <div class="text-gray-500 text-xs">${order.PaymentMethod}</div>
+                            ${slipBtn}
+                        </td>
+                        <td class="px-4 py-4">
+                            <span class="px-2 py-1 rounded-full text-xs font-medium 
+                                ${order.Status === 'รอรับออเดอร์' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}">
+                                ${order.Status}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 flex gap-2">
+                            ${order.Status === 'รอรับออเดอร์' 
+                                ? `<button onclick="updateStatus('${order.OrderID}', 'กำลังทอด')" class="bg-gray-900 text-white px-3 py-1.5 rounded text-xs hover:bg-gray-800">รับออเดอร์ & ทอด</button>` 
+                                : `<button onclick="updateStatus('${order.OrderID}', 'เสร็จแล้วมารับได้')" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs hover:bg-green-600">เสร็จแล้ว</button>`
+                            }
+                        </td>
+                    </tr>
+                `;
+            });
+        }
 
-    async function changeStatus(orderId, newStatus) {
-      // Optimistic UI Update (เปลี่ยนในหน้าจอทันทีก่อนรอเซิร์ฟเวอร์)
-      const order = currentOrders.find(o => o.orderId === orderId);
-      if(order) order.status = newStatus;
-      renderOrders();
+        async function updateStatus(orderId, newStatus) {
+            Swal.fire({title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'updateStatus', orderId: orderId, newStatus: newStatus })
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'อัปเดตสถานะสำเร็จ', showConfirmButton: false, timer: 1500});
+                    fetchOrders();
+                }
+            } catch (err) {
+                Swal.fire('Error', 'อัปเดตไม่สำเร็จ', 'error');
+            }
+        }
 
-      try {
-        await fetch(GAS_URL, {
-          method: 'POST',
-          body: JSON.stringify({ action: 'updateStatus', orderId: orderId, newStatus: newStatus })
-        });
-      } catch (e) {
-        Swal.fire('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่', 'error');
-        fetchOrders(); 
-      }
-    }
-  </script>
+        // โหลดครั้งแรก และดึงข้อมูลใหม่ทุกๆ 10 วินาที
+        fetchOrders();
+        setInterval(fetchOrders, 10000);
+    </script>
 </body>
 </html>
