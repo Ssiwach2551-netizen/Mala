@@ -7,126 +7,144 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
-        body { font-family: 'Prompt', sans-serif; background-color: #FAFAFA; color: #333; }
-        .stepper-active { border-color: #EF4444; color: #EF4444; }
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #FAFAFA; color: #1F2937; }
+        .stepper-active { border-color: #DC2626; color: #DC2626; background-color: #FEF2F2; }
         .stepper-done { border-color: #10B981; background-color: #10B981; color: white; }
+        .brand-gradient { background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%); }
     </style>
 </head>
-<body class="antialiased pb-20">
+<body class="antialiased pb-24">
 
     <!-- Header -->
-    <header class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-xl font-semibold text-gray-800">ล่าหมามาแดก</h1>
-            <div id="cart-btn" class="relative cursor-pointer" onclick="toggleCart()">
-                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+    <header class="bg-white shadow-sm border-b border-red-100 sticky top-0 z-40">
+        <div class="max-w-md mx-auto px-4 py-3.5 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-red-600 inline-block animate-pulse"></span>
+                <h1 class="text-xl font-bold text-gray-900 tracking-tight">ล่าหมามาแดก</h1>
+            </div>
+            <div id="cart-btn" class="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition" onclick="toggleCart()">
+                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                <span id="cart-count" class="absolute top-0 right-0 bg-red-600 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white hidden">0</span>
             </div>
         </div>
     </header>
 
     <div class="max-w-md mx-auto px-4 mt-6" id="app-content">
         <!-- Section: Login -->
-        <div id="login-section" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-            <h2 class="text-lg font-medium mb-4">ข้อมูลลูกค้า</h2>
-            <input type="text" id="nikeName" placeholder="ชื่อเล่น" class="w-full mb-3 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400">
-            <input type="text" id="classRoom" placeholder="ห้อง (เช่น 6/1)" class="w-full mb-4 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400">
-            <button onclick="startOrdering()" class="w-full bg-gray-900 text-white p-3 rounded-lg font-medium hover:bg-gray-800 transition">เริ่มสั่งอาหาร</button>
+        <div id="login-section" class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+            <div class="w-12 h-12 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 font-bold text-xl">🌶️</div>
+            <h2 class="text-lg font-bold text-gray-800 mb-1">ยินดีต้อนรับ</h2>
+            <p class="text-xs text-gray-500 mb-6">กรุณาระบุชื่อและห้องเพื่อความสะดวกในการเรียกคิว</p>
+            
+            <input type="text" id="nikeName" placeholder="ชื่อเล่น" class="w-full mb-3 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white text-sm transition">
+            <input type="text" id="classRoom" placeholder="ห้อง (เช่น 6/1)" class="w-full mb-5 p-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white text-sm transition">
+            <button onclick="startOrdering()" class="w-full brand-gradient text-white p-3.5 rounded-xl font-medium shadow-md shadow-red-200 hover:opacity-95 transition">เริ่มเลือกเมนู</button>
         </div>
 
         <!-- Section: Menu -->
-        <div id="menu-section" class="hidden mt-6">
-            <div id="menu-list" class="grid grid-cols-2 gap-4">
-                <!-- รายการอาหารจะถูกโหลดมาใส่ตรงนี้ -->
-                <p class="text-center col-span-2 text-gray-500 text-sm py-10">กำลังโหลดเมนู...</p>
+        <div id="menu-section" class="hidden">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="font-bold text-gray-800">รายการเมนู</h2>
+                <span class="text-xs bg-red-50 text-red-600 font-medium px-2.5 py-1 rounded-full">เลือกได้ตามใจชอบ</span>
+            </div>
+            <div id="menu-list" class="grid grid-cols-2 gap-3.5">
+                <p class="text-center col-span-2 text-gray-400 text-sm py-12">กำลังโหลดเมนู...</p>
             </div>
         </div>
     </div>
 
     <!-- Modal: Checkout -->
-    <div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-end sm:items-center justify-center">
-        <div class="bg-white w-full max-w-md h-5/6 sm:h-auto sm:rounded-xl rounded-t-xl overflow-y-auto p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-xl font-semibold">ตะกร้าของคุณ</h2>
-                <button onclick="toggleCart()" class="text-gray-500 text-2xl">&times;</button>
+    <div id="checkout-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center transition-all">
+        <div class="bg-white w-full max-w-md h-5/6 sm:h-auto sm:rounded-2xl rounded-t-2xl overflow-y-auto p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-5 pb-3 border-b">
+                <h2 class="text-lg font-bold text-gray-800">สรุปรายการสั่งซื้อ</h2>
+                <button onclick="toggleCart()" class="text-gray-400 hover:text-gray-600 text-2xl font-light">&times;</button>
             </div>
-            <div id="cart-items" class="mb-4 space-y-3"></div>
+            
+            <div id="cart-items" class="mb-4 space-y-2.5 max-h-48 overflow-y-auto pr-1"></div>
             
             <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">ระดับความเผ็ด</label>
-                <select id="spiciness" class="w-full p-3 border rounded-lg">
+                <label class="block text-xs font-semibold text-gray-600 mb-1.5">ระดับความเผ็ด</label>
+                <select id="spiciness" class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                     <option value="ไม่เผ็ด">ไม่เผ็ด</option>
                     <option value="เผ็ดน้อย">เผ็ดน้อย</option>
-                    <option value="เผ็ดกลาง" selected>เผ็ดกลาง (แนะนำ)</option>
-                    <option value="เผ็ดมาก">เผ็ดมากล่าสัตว์</option>
+                    <option value="เผ็ดกลาง" selected>เผ็ดกลาง </option>
+                    <option value="เผ็ดมาก">เผ็ดมาก</option>
                 </select>
             </div>
 
-            <div class="flex justify-between font-semibold text-lg mb-4 border-t pt-4">
-                <span>ยอดรวม</span>
-                <span id="total-price" class="text-red-500">0 บาท</span>
+            <div class="flex justify-between items-center font-bold text-base my-4 p-3 bg-red-50 rounded-xl text-gray-800">
+                <span>ยอดรวมทั้งหมด</span>
+                <span id="total-price" class="text-red-600 text-lg">0 บาท</span>
             </div>
 
-            <div class="mb-6">
-                <label class="block text-sm font-medium mb-2">วิธีชำระเงิน</label>
-                <div class="flex gap-2">
-                    <button onclick="selectPayment('เงินสด')" id="btn-cash" class="flex-1 py-2 border rounded-lg bg-gray-100 font-medium">เงินสด</button>
-                    <button onclick="selectPayment('สแกนจ่าย')" id="btn-qr" class="flex-1 py-2 border rounded-lg font-medium">สแกนจ่าย</button>
+            <div class="mb-5">
+                <label class="block text-xs font-semibold text-gray-600 mb-2">ช่องทางชำระเงิน</label>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="selectPayment('เงินสด')" id="btn-cash" class="py-2.5 border border-gray-200 rounded-xl font-medium text-sm transition bg-white text-gray-700">เงินสด</button>
+                    <button onclick="selectPayment('สแกนจ่าย')" id="btn-qr" class="py-2.5 border border-red-600 bg-red-50 text-red-600 rounded-xl font-medium text-sm transition">สแกนจ่าย QR</button>
                 </div>
             </div>
 
-            <div id="qr-section" class="hidden text-center mb-6 bg-gray-50 p-4 rounded-lg">
-                <p class="text-sm text-gray-600 mb-2">สแกน QR Code นี้ (พร้อมเพย์)</p>
-                <img id="qr-image" src="" alt="QR Code" class="mx-auto w-48 h-48 mb-3">
-                <input type="file" id="slip-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100">
+            <div id="qr-section" class="text-center mb-5 bg-gray-50 p-4 rounded-xl border border-dashed border-gray-200">
+                <p class="text-xs text-gray-500 mb-2">สแกนจ่ายด้วย PromptPay</p>
+                <img id="qr-image" src="" alt="QR Code" class="mx-auto w-44 h-44 mb-3 rounded-lg border bg-white p-2">
+                <input type="file" id="slip-upload" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-600 file:text-white hover:file:bg-red-700 cursor-pointer">
             </div>
 
-            <button onclick="submitOrder()" class="w-full bg-gray-900 text-white p-3 rounded-lg font-medium hover:bg-gray-800 transition">ยืนยันคำสั่งซื้อ</button>
+            <button onclick="submitOrder()" class="w-full brand-gradient text-white p-3.5 rounded-xl font-medium shadow-md shadow-red-200 hover:opacity-95 transition">ยืนยันการสั่งซื้อ</button>
         </div>
     </div>
 
     <!-- Modal: Tracking -->
     <div id="tracking-modal" class="fixed inset-0 bg-white hidden z-50 flex flex-col items-center justify-center px-6">
-        <h2 class="text-2xl font-semibold mb-8">สถานะออเดอร์</h2>
+        <div class="text-center mb-8">
+            <span class="inline-block p-3 bg-red-50 text-red-600 rounded-full mb-3 text-2xl">⏳</span>
+            <h2 class="text-xl font-bold text-gray-800">ติดตามสถานะออเดอร์</h2>
+            <p class="text-xs text-gray-400 mt-1" id="order-id-label">รหัสออเดอร์: -</p>
+        </div>
         
         <div class="w-full max-w-xs relative border-l-2 border-gray-200 ml-3 space-y-8 py-2">
             <!-- Step 1 -->
             <div class="relative pl-6">
                 <div id="step-1" class="absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 bg-white stepper-active"></div>
-                <h3 class="font-medium">ร้านรับออเดอร์แล้ว</h3>
+                <h3 class="font-medium text-sm text-gray-800">ร้านรับออเดอร์แล้ว</h3>
+                <p class="text-[11px] text-gray-400">กำลังเตรียมวัตถุดิบ</p>
             </div>
             <!-- Step 2 -->
             <div class="relative pl-6">
                 <div id="step-2" class="absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1"></div>
-                <h3 class="font-medium">กำลังทอด</h3>
+                <h3 class="font-medium text-sm text-gray-800">กำลังทอด</h3>
+                <p class="text-[11px] text-gray-400">หมาล่ากำลังร้อนๆ</p>
             </div>
             <!-- Step 3 -->
             <div class="relative pl-6">
                 <div id="step-3" class="absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1"></div>
-                <h3 class="font-medium">เสร็จแล้วมารับได้</h3>
+                <h3 class="font-medium text-sm text-gray-800">เสร็จแล้วมารับได้</h3>
+                <p class="text-[11px] text-gray-400">รับอาหารที่หน้าร้านได้เลย</p>
             </div>
         </div>
 
-        <button onclick="location.reload()" class="mt-12 text-gray-500 underline text-sm">สั่งออเดอร์ใหม่</button>
+        <button onclick="location.reload()" class="mt-12 px-6 py-2 bg-gray-100 text-gray-600 rounded-full text-xs font-medium hover:bg-gray-200 transition">สั่งออเดอร์ใหม่</button>
     </div>
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbwYPwixCzaWRagRdkkfO3Na3z62MBtfaJaCzJh5ZN0WA3eTgdakM68pEiLRQMOjHFC3fQ/exec';
-        const PROMPTPAY_NUMBER = '1418600121013'; // ใส่เบอร์พร้อมเพย์
+        const PROMPTPAY_NUMBER = '1418600121013';
         
         let cart = [];
         let menuData = [];
-        let paymentMethod = 'เงินสด';
+        let paymentMethod = 'สแกนจ่าย';
         let currentOrderId = '';
         let trackingInterval;
         const soundAlert = new Audio('https://files.catbox.moe/7s5kwu.mp3');
 
         function startOrdering() {
-            const name = document.getElementById('nikeName').value;
-            const room = document.getElementById('classRoom').value;
+            const name = document.getElementById('nikeName').value.trim();
+            const room = document.getElementById('classRoom').value.trim();
             if(!name || !room) {
-                Swal.fire({icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'ใส่ชื่อเล่นและห้องก่อนนะครับ', confirmButtonColor: '#333'});
+                Swal.fire({icon: 'warning', title: 'กรอกข้อมูลไม่ครบ', text: 'ระบุชื่อเล่นและห้องก่อนสั่งซื้อนะครับ', confirmButtonColor: '#DC2626'});
                 return;
             }
             document.getElementById('login-section').classList.add('hidden');
@@ -136,15 +154,12 @@
 
         async function fetchMenu() {
             try {
-                const res = await fetch(API_URL, {
-                    method: 'POST',
-                    body: JSON.stringify({action: 'getMenu'})
-                });
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'getMenu'}) });
                 const response = await res.json();
                 menuData = response.data;
                 renderMenu();
             } catch (err) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดเมนูได้', 'error');
+                Swal.fire({icon: 'error', title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถดึงข้อมูลเมนูได้', confirmButtonColor: '#DC2626'});
             }
         }
 
@@ -154,14 +169,14 @@
             menuData.forEach(item => {
                 if(item.stock > 0) {
                     menuContainer.innerHTML += `
-                        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm flex flex-col">
-                            <img src="${item['รูปภาพ']}" class="w-full h-32 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+                        <div class="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+                            <img src="${item['รูปภาพ']}" class="w-full h-32 object-cover bg-gray-50" onerror="this.src='https://via.placeholder.com/150'">
                             <div class="p-3 flex-1 flex flex-col justify-between">
                                 <div>
-                                    <h3 class="font-medium text-sm text-gray-800">${item.Name}</h3>
-                                    <p class="text-red-500 font-semibold text-sm mt-1">฿${item.Price}</p>
+                                    <h3 class="font-medium text-xs text-gray-800 line-clamp-1">${item.Name}</h3>
+                                    <p class="text-red-600 font-bold text-sm mt-0.5">฿${item.Price}</p>
                                 </div>
-                                <button onclick="addToCart('${item.Name}', ${item.Price})" class="mt-3 w-full bg-gray-100 text-gray-800 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-200">เพิ่ม</button>
+                                <button onclick="addToCart('${item.Name}', ${item.Price})" class="mt-2.5 w-full bg-red-50 text-red-600 py-1.5 rounded-xl text-xs font-semibold hover:bg-red-600 hover:text-white transition">เพิ่มลงตะกร้า</button>
                             </div>
                         </div>
                     `;
@@ -175,7 +190,7 @@
             else cart.push({name, price, qty: 1});
             
             updateCartBadge();
-            Swal.fire({title: 'เพิ่มลงตะกร้าแล้ว', toast: true, position: 'bottom', showConfirmButton: false, timer: 1500, background: '#333', color: '#fff'});
+            Swal.fire({toast: true, position: 'bottom', title: 'เพิ่มรายการแล้ว', showConfirmButton: false, timer: 1200, background: '#1F2937', color: '#fff'});
         }
 
         function updateCartBadge() {
@@ -186,7 +201,7 @@
         }
 
         function toggleCart() {
-            if(cart.length === 0) return Swal.fire({toast: true, position: 'bottom', title: 'ตะกร้าว่างเปล่า', showConfirmButton: false, timer: 1500});
+            if(cart.length === 0) return Swal.fire({toast: true, position: 'bottom', title: 'ตะกร้าสินค้ายังว่างอยู่', showConfirmButton: false, timer: 1500});
             
             const modal = document.getElementById('checkout-modal');
             if(modal.classList.contains('hidden')) {
@@ -204,18 +219,17 @@
             cart.forEach((item, idx) => {
                 total += item.price * item.qty;
                 container.innerHTML += `
-                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg text-sm border border-gray-100">
-                        <span class="font-medium">${item.name} <span class="text-gray-500 font-normal">x${item.qty}</span></span>
+                    <div class="flex justify-between items-center bg-gray-50 p-2.5 rounded-xl text-xs border border-gray-100">
+                        <span class="font-medium text-gray-800">${item.name} <span class="text-gray-400 font-normal">x${item.qty}</span></span>
                         <div class="flex items-center gap-3">
-                            <span>฿${item.price * item.qty}</span>
-                            <button onclick="removeItem(${idx})" class="text-red-400">&times;</button>
+                            <span class="font-semibold text-gray-700">฿${item.price * item.qty}</span>
+                            <button onclick="removeItem(${idx})" class="text-red-400 hover:text-red-600 font-bold">&times;</button>
                         </div>
                     </div>
                 `;
             });
             document.getElementById('total-price').innerText = total + ' บาท';
             
-            // อัปเดต QR Code หากเลือกสแกนจ่าย
             if(paymentMethod === 'สแกนจ่าย') {
                 document.getElementById('qr-image').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${total}.png`;
             }
@@ -234,14 +248,14 @@
             const qrSection = document.getElementById('qr-section');
 
             if(method === 'เงินสด') {
-                btnCash.classList.add('bg-gray-100'); btnCash.classList.remove('bg-white');
-                btnQr.classList.remove('bg-gray-100'); btnQr.classList.add('bg-white');
+                btnCash.className = 'py-2.5 border border-red-600 bg-red-50 text-red-600 rounded-xl font-medium text-sm transition';
+                btnQr.className = 'py-2.5 border border-gray-200 rounded-xl font-medium text-sm transition bg-white text-gray-700';
                 qrSection.classList.add('hidden');
             } else {
-                btnQr.classList.add('bg-gray-100'); btnQr.classList.remove('bg-white');
-                btnCash.classList.remove('bg-gray-100'); btnCash.classList.add('bg-white');
+                btnQr.className = 'py-2.5 border border-red-600 bg-red-50 text-red-600 rounded-xl font-medium text-sm transition';
+                btnCash.className = 'py-2.5 border border-gray-200 rounded-xl font-medium text-sm transition bg-white text-gray-700';
                 qrSection.classList.remove('hidden');
-                renderCart(); // เพื่อเจน QR ใหม่ตามยอด
+                renderCart();
             }
         }
 
@@ -252,17 +266,17 @@
             if(paymentMethod === 'สแกนจ่าย') {
                 const fileInput = document.getElementById('slip-upload');
                 if(!fileInput.files[0]) {
-                    return Swal.fire('แจ้งเตือน', 'กรุณาแนบสลิปโอนเงิน', 'warning');
+                    return Swal.fire({icon: 'warning', title: 'กรุณาแนบสลิป', text: 'แนบสลิปการโอนเงินก่อนยืนยันนะครับ', confirmButtonColor: '#DC2626'});
                 }
                 slipBase64 = await toBase64(fileInput.files[0]);
             }
 
-            Swal.fire({title: 'กำลังส่งคำสั่งซื้อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            Swal.fire({title: 'กำลังส่งออเดอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
 
             const payload = {
                 action: 'placeOrder',
-                nikeName: document.getElementById('nikeName').value,
-                Class: document.getElementById('classRoom').value,
+                nikeName: document.getElementById('nikeName').value.trim(),
+                Class: document.getElementById('classRoom').value.trim(),
                 items: cart,
                 spiciness: document.getElementById('spiciness').value,
                 totalPrice: total,
@@ -276,13 +290,14 @@
                 
                 if(data.status === 'success') {
                     currentOrderId = data.orderId;
+                    document.getElementById('order-id-label').innerText = `รหัสออเดอร์: ${currentOrderId}`;
                     Swal.close();
                     document.getElementById('checkout-modal').classList.add('hidden');
                     document.getElementById('tracking-modal').classList.remove('hidden');
                     startTracking();
                 }
             } catch (error) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถส่งคำสั่งซื้อได้', 'error');
+                Swal.fire({icon: 'error', title: 'ล้มเหลว', text: 'ไม่สามารถส่งออเดอร์ได้ กรุณาลองใหม่', confirmButtonColor: '#DC2626'});
             }
         }
 
@@ -301,7 +316,7 @@
                     
                     if(data.status === 'success') updateStepper(data.orderStatus);
                 } catch(e) {}
-            }, 5000); // เช็คทุกๆ 5 วินาที
+            }, 5000);
         }
 
         function updateStepper(status) {
@@ -314,14 +329,14 @@
             if(status === 'กำลังทอด' || status === 'เสร็จแล้วมารับได้') {
                 s2.className = 'absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 stepper-done';
             } else {
-                s2.className = 'absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1 stepper-active';
+                s2.className = 'absolute w-4 h-4 bg-white border-2 border-red-500 rounded-full -left-[9px] top-1 stepper-active';
             }
 
             if(status === 'เสร็จแล้วมารับได้') {
                 s3.className = 'absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 stepper-done';
                 clearInterval(trackingInterval);
                 soundAlert.play();
-                Swal.fire({icon: 'success', title: 'อาหารเสร็จแล้ว!', text: 'มารับอาหารที่หน้าร้านได้เลยครับ', confirmButtonColor: '#10B981'});
+                Swal.fire({icon: 'success', title: 'อาหารเสร็จเรียบร้อย!', text: 'มารับอาหารที่หน้าร้านได้เลยครับ', confirmButtonColor: '#10B981'});
             }
         }
     </script>
