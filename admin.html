@@ -3,50 +3,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบแม่ค้า| ล่าหมามาแดก</title>
+    <title>ระบบจัดการร้าน | ล่าหมามาแดก</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
-        body { font-family: 'Prompt', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #F9FAFB; color: #111827; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 sm:p-6">
 
-    <div class="max-w-4xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-semibold">จัดการออเดอร์</h1>
-            <div class="flex items-center gap-2">
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span class="text-sm text-gray-500" id="last-update">อัปเดตล่าสุด: กำลังโหลด...</span>
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+            <div>
+                <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <span class="text-red-600">🌶️</span> ล่าหมามาแดก (หลังร้าน)
+                </h1>
+                <p class="text-xs text-gray-400 mt-0.5" id="last-update">กำลังเชื่อมต่อระบบ...</p>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- ปุ่มเปิด/ปิดเสียง เพื่อให้ผ่านนโยบาย Autoplay Policy ของเบราว์เซอร์ -->
+                <button id="sound-toggle-btn" onclick="toggleSoundPermission()" class="px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 hover:bg-gray-200 transition flex items-center gap-1.5">
+                    <span id="sound-icon">🔕</span> <span id="sound-text">คลิกเพื่อเปิดเสียงแจ้งเตือน</span>
+                </button>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-            <table class="w-full text-left text-sm whitespace-nowrap">
-                <thead class="bg-gray-50 text-gray-600 border-b">
-                    <tr>
-                        <th class="px-4 py-3 font-medium">ชื่อ/ห้อง</th>
-                        <th class="px-4 py-3 font-medium">รายการอาหาร</th>
-                        <th class="px-4 py-3 font-medium">ยอด/ชำระเงิน</th>
-                        <th class="px-4 py-3 font-medium">สถานะ</th>
-                        <th class="px-4 py-3 font-medium">จัดการ</th>
-                    </tr>
-                </thead>
-                <tbody id="admin-orders" class="divide-y divide-gray-100">
-                    <tr><td colspan="5" class="text-center py-8 text-gray-500">กำลังโหลดข้อมูล...</td></tr>
-                </tbody>
-            </table>
+        <!-- Order Table -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-red-50/50 text-gray-600 border-b border-gray-100">
+                        <tr>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">ชื่อ / ห้อง</th>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">รายการที่สั่ง</th>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">ยอดเงิน / สลิป</th>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">สถานะปัจจุบัน</th>
+                            <th class="px-4 py-3.5 font-semibold text-xs text-red-900">อัปเดตสถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-orders" class="divide-y divide-gray-100">
+                        <tr><td colspan="5" class="text-center py-10 text-gray-400 text-xs">กำลังโหลดข้อมูลออเดอร์...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbwYPwixCzaWRagRdkkfO3Na3z62MBtfaJaCzJh5ZN0WA3eTgdakM68pEiLRQMOjHFC3fQ/exec';
-        let lastOrderCount = 0;
+        const API_URL = 'ใส่_WEB_APP_URL_ของคุณตรงนี้';
+        
+        let soundAllowed = false;
+        let knownOrderIds = new Set();
+        let isFirstFetch = true;
         const alertSound = new Audio('https://files.catbox.moe/7s5kwu.mp3');
+
+        // ฟังก์ชั่นขอรับสิทธิ์เล่นเสียงจากการกดของผู้ใช้
+        function toggleSoundPermission() {
+            soundAllowed = !soundAllowed;
+            const btn = document.getElementById('sound-toggle-btn');
+            const icon = document.getElementById('sound-icon');
+            const text = document.getElementById('sound-text');
+
+            if(soundAllowed) {
+                // ทดลองเล่นและหยุดเสียงทันทีเพื่อปลดล็อกสิทธิ์ Autoplay
+                alertSound.play().then(() => {
+                    alertSound.pause();
+                    alertSound.currentTime = 0;
+                }).catch(e => console.log('Audio error:', e));
+
+                btn.className = 'px-3.5 py-2 bg-red-600 text-white text-xs font-semibold rounded-xl shadow-sm hover:bg-red-700 transition flex items-center gap-1.5';
+                icon.innerText = '🔔';
+                text.innerText = 'ระบบเสียงเปิดอยู่';
+                
+                Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'เปิดระบบเสียงแจ้งเตือนเรียบร้อย', showConfirmButton: false, timer: 2000});
+            } else {
+                btn.className = 'px-3.5 py-2 bg-gray-100 text-gray-700 text-xs font-semibold rounded-xl border border-gray-200 hover:bg-gray-200 transition flex items-center gap-1.5';
+                icon.innerText = '🔕';
+                text.innerText = 'เสียงถูกปิดอยู่ (คลิกเปิด)';
+            }
+        }
 
         async function fetchOrders() {
             try {
@@ -54,22 +92,47 @@
                 const data = await res.json();
                 
                 if(data.status === 'success') {
-                    // กรองเฉพาะออเดอร์ที่ยังไม่เสร็จ (หรือต้องการแสดงทั้งหมด ให้เอา .filter ออก)
+                    // กรองเฉพาะออเดอร์ที่ยังไม่เสร็จ
                     const activeOrders = data.data.filter(o => o.Status !== 'เสร็จแล้วมารับได้').reverse();
                     
-                    if(activeOrders.length > lastOrderCount && lastOrderCount !== 0) {
-                        alertSound.play();
-                        Swal.fire({toast: true, position: 'top-end', icon: 'info', title: 'มีออเดอร์ใหม่เข้า!', showConfirmButton: false, timer: 3000});
+                    let hasNewOrder = false;
+
+                    activeOrders.forEach(order => {
+                        if(!knownOrderIds.has(order.OrderID)) {
+                            if(!isFirstFetch) {
+                                hasNewOrder = true;
+                            }
+                            knownOrderIds.add(order.OrderID);
+                        }
+                    });
+
+                    if(hasNewOrder) {
+                        if(soundAllowed) {
+                            alertSound.currentTime = 0;
+                            alertSound.play().catch(err => console.log("Sound play blocked:", err));
+                        }
+                        
+                        Swal.fire({
+                            toast: true,
+                            position: 'top-end',
+                            icon: 'warning',
+                            title: '🔥 มีออเดอร์ใหม่เข้ามา!',
+                            text: 'กรุณาตรวจสอบรายการอาหาร',
+                            showConfirmButton: false,
+                            timer: 4000,
+                            background: '#DC2626',
+                            color: '#ffffff'
+                        });
                     }
-                    lastOrderCount = activeOrders.length;
-                    
+
+                    isFirstFetch = false;
                     renderOrders(activeOrders);
                     
                     const now = new Date();
                     document.getElementById('last-update').innerText = `อัปเดตล่าสุด: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')} น.`;
                 }
             } catch (error) {
-                console.error("Error fetching orders");
+                console.error("Error fetching orders:", error);
             }
         }
 
@@ -78,7 +141,7 @@
             tbody.innerHTML = '';
             
             if(orders.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-8 text-gray-500">ไม่มีออเดอร์ค้างอยู่</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-10 text-gray-400 text-xs">ไม่มีออเดอร์ค้างอยู่ขณะนี้</td></tr>';
                 return;
             }
 
@@ -86,39 +149,39 @@
                 let itemsHtml = '';
                 try {
                     const items = JSON.parse(order.Items);
-                    itemsHtml = items.map(i => `${i.name} (x${i.qty})`).join('<br>');
+                    itemsHtml = items.map(i => `<span class="font-medium text-gray-800">${i.name}</span> <span class="text-gray-400">x${i.qty}</span>`).join('<br>');
                 } catch(e) { itemsHtml = order.Items; }
 
                 let slipBtn = '';
                 if(order['Slip URL']) {
-                    slipBtn = `<a href="${order['Slip URL']}" target="_blank" class="text-blue-500 underline text-xs block mt-1">ดูสลิป</a>`;
+                    slipBtn = `<button onclick="viewSlip('${order['Slip URL']}')" class="text-red-600 font-semibold text-xs block mt-1 hover:underline">🔍 ดูสลิปโอนเงิน</button>`;
                 }
 
                 tbody.innerHTML += `
-                    <tr class="hover:bg-gray-50">
+                    <tr class="hover:bg-gray-50/80 transition">
                         <td class="px-4 py-4">
-                            <div class="font-medium">${order.nikeName}</div>
-                            <div class="text-gray-500 text-xs">ห้อง ${order.Class}</div>
+                            <div class="font-bold text-gray-800 text-sm">${order.nikeName}</div>
+                            <div class="text-xs text-red-600 font-medium">ห้อง ${order.Class}</div>
                         </td>
-                        <td class="px-4 py-4 whitespace-normal">
+                        <td class="px-4 py-4 whitespace-normal text-xs leading-relaxed">
                             ${itemsHtml}
-                            <div class="text-red-500 text-xs mt-1">🌶 ${order.Spiciness}</div>
+                            <div class="text-red-600 font-medium text-[11px] mt-1">🌶️ เผ็ด: ${order.Spiciness}</div>
                         </td>
                         <td class="px-4 py-4">
-                            <div class="font-medium">฿${order.TotalPrice}</div>
-                            <div class="text-gray-500 text-xs">${order.PaymentMethod}</div>
+                            <div class="font-bold text-gray-900 text-sm">฿${order.TotalPrice}</div>
+                            <div class="text-gray-400 text-xs">${order.PaymentMethod}</div>
                             ${slipBtn}
                         </td>
                         <td class="px-4 py-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-medium 
-                                ${order.Status === 'รอรับออเดอร์' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'}">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold 
+                                ${order.Status === 'รอรับออเดอร์' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">
                                 ${order.Status}
                             </span>
                         </td>
-                        <td class="px-4 py-4 flex gap-2">
+                        <td class="px-4 py-4">
                             ${order.Status === 'รอรับออเดอร์' 
-                                ? `<button onclick="updateStatus('${order.OrderID}', 'กำลังทอด')" class="bg-gray-900 text-white px-3 py-1.5 rounded text-xs hover:bg-gray-800">รับออเดอร์ & ทอด</button>` 
-                                : `<button onclick="updateStatus('${order.OrderID}', 'เสร็จแล้วมารับได้')" class="bg-green-500 text-white px-3 py-1.5 rounded text-xs hover:bg-green-600">เสร็จแล้ว</button>`
+                                ? `<button onclick="updateStatus('${order.OrderID}', 'กำลังทอด')" class="bg-gray-900 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-gray-800 shadow-sm transition">รับออเดอร์ & ทอด</button>` 
+                                : `<button onclick="updateStatus('${order.OrderID}', 'เสร็จแล้วมารับได้')" class="bg-emerald-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-medium hover:bg-emerald-700 shadow-sm transition">ทอดเสร็จแล้ว</button>`
                             }
                         </td>
                     </tr>
@@ -126,8 +189,18 @@
             });
         }
 
+        function viewSlip(url) {
+            Swal.fire({
+                title: 'สลิปการโอนเงิน',
+                imageUrl: url,
+                imageAlt: 'สลิปโอนเงิน',
+                confirmButtonText: 'ปิดหน้าต่าง',
+                confirmButtonColor: '#111827'
+            });
+        }
+
         async function updateStatus(orderId, newStatus) {
-            Swal.fire({title: 'กำลังอัปเดต...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            Swal.fire({title: 'กำลังอัปเดตสถานะ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
             try {
                 const res = await fetch(API_URL, {
                     method: 'POST',
@@ -135,17 +208,17 @@
                 });
                 const data = await res.json();
                 if(data.status === 'success') {
-                    Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'อัปเดตสถานะสำเร็จ', showConfirmButton: false, timer: 1500});
+                    Swal.fire({toast: true, position: 'top-end', icon: 'success', title: 'อัปเดตสำเร็จ', showConfirmButton: false, timer: 1500});
                     fetchOrders();
                 }
             } catch (err) {
-                Swal.fire('Error', 'อัปเดตไม่สำเร็จ', 'error');
+                Swal.fire('ข้อผิดพลาด', 'อัปเดตไม่สำเร็จ', 'error');
             }
         }
 
-        // โหลดครั้งแรก และดึงข้อมูลใหม่ทุกๆ 10 วินาที
+        // เริ่มต้นการทำงาน ดึงข้อมูลทุกๆ 8 วินาที
         fetchOrders();
-        setInterval(fetchOrders, 10000);
+        setInterval(fetchOrders, 8000);
     </script>
 </body>
 </html>
