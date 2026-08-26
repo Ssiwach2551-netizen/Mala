@@ -3,250 +3,202 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MALA — หลังร้าน</title>
+  <title>ล่าหมามาแดก - หน้าจอแม่ค้า (Admin)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; color: #0f172a; }
+    .swal2-popup { font-family: 'Prompt', sans-serif !important; border-radius: 1.5rem !important; }
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .glass-header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
   </style>
 </head>
-<body class="min-h-screen bg-slate-50 pb-12">
+<body class="h-screen overflow-hidden flex flex-col">
 
-  <!-- Header Nav -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center text-amber-400 font-black text-lg">🍳</div>
-        <div>
-          <h1 class="text-sm font-black text-slate-800">ล่าหมามาแดก</h1>
-          <p class="text-[10px] text-slate-400 font-medium">ออเดอร์หลังร้าน</p>
-        </div>
-      </div>
-      
-      <div class="flex items-center gap-2">
-        <button onclick="openStockModal()" class="bg-slate-900 hover:bg-slate-800 text-amber-400 px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm">
-          📦 จัดการสต๊อก
-        </button>
-        <button onclick="fetchData(true)" class="p-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-slate-600 transition-all">
-          🔄
-        </button>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Grid -->
-  <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
-
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-[11px] font-bold text-slate-400">ออเดอร์ใหม่</p>
-        <p class="text-xl font-black text-amber-500 mt-1" id="kpi-pending">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-[11px] font-bold text-slate-400">กำลังปรุง</p>
-        <p class="text-xl font-black text-blue-600 mt-1" id="kpi-cooking">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-[11px] font-bold text-slate-400">รอรับอาหาร</p>
-        <p class="text-xl font-black text-emerald-600 mt-1" id="kpi-ready">0</p>
-      </div>
-      <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
-        <p class="text-[11px] font-bold text-slate-400">รวมทั้งหมดวันนี้</p>
-        <p class="text-xl font-black text-slate-800 mt-1" id="kpi-total">0</p>
-      </div>
-    </div>
-
-    <!-- Kanban Columns -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      
-      <!-- Pending -->
-      <div class="space-y-3">
-        <div class="flex justify-between items-center px-1">
-          <h2 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span> ออเดอร์ใหม่
-          </h2>
-          <span id="badge-Pending" class="bg-amber-100 text-amber-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="col-Pending" class="space-y-3"></div>
-      </div>
-
-      <!-- Cooking -->
-      <div class="space-y-3">
-        <div class="flex justify-between items-center px-1">
-          <h2 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> กำลังปรุง
-          </h2>
-          <span id="badge-Cooking" class="bg-blue-100 text-blue-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="col-Cooking" class="space-y-3"></div>
-      </div>
-
-      <!-- Ready -->
-      <div class="space-y-3">
-        <div class="flex justify-between items-center px-1">
-          <h2 class="text-xs font-black text-slate-700 uppercase tracking-wider flex items-center gap-2">
-            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span> รอรับอาหาร
-          </h2>
-          <span id="badge-Ready" class="bg-emerald-100 text-emerald-700 text-[10px] font-extrabold px-2 py-0.5 rounded-full">0</span>
-        </div>
-        <div id="col-Ready" class="space-y-3"></div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- Stock Modal -->
-  <div id="stockModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col max-h-[85vh]">
-      <div class="p-4 border-b border-slate-100 flex justify-between items-center">
-        <h3 class="font-extrabold text-slate-800 text-sm">จัดการสต๊อกสินค้า</h3>
-        <button onclick="closeStockModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">✕</button>
-      </div>
-      <div id="menuStockList" class="p-4 overflow-y-auto space-y-3 flex-1"></div>
+  <!-- หน้าจอเปิดเสียงแจ้งเตือน (กันเบราว์เซอร์บล็อกเสียง) -->
+  <div id="soundUnlockOverlay" class="fixed inset-0 bg-slate-900/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-6 text-center">
+    <div class="bg-white p-8 rounded-[2rem] shadow-2xl max-w-sm w-full space-y-5">
+      <div class="text-6xl mb-2 animate-bounce">👩‍🍳</div>
+      <h2 class="text-2xl font-black text-slate-800">ระบบจัดการออเดอร์</h2>
+      <p class="text-sm text-slate-500">กดปุ่มด้านล่างเพื่อเปิดระบบและอนุญาตให้เสียงแจ้งเตือนทำงาน</p>
+      <button onclick="startAdminSystem()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg active:scale-95 transition-all text-base">
+        เข้าสู่ระบบแม่ค้า 🚀
+      </button>
     </div>
   </div>
 
+  <!-- Header -->
+  <div class="glass-header text-white p-4 shadow-md sticky top-0 z-50 flex justify-between items-center border-b border-slate-700">
+    <div>
+      <h1 class="text-xl font-black tracking-wide">ล่าหมามาแดก <span class="text-slate-400 font-medium text-sm">| Admin Panel</span></h1>
+      <p class="text-[10px] text-emerald-400 font-bold mt-0.5">🟢 อัปเดตอัตโนมัติทุก 10 วินาที</p>
+    </div>
+    <button onclick="fetchOrders()" class="bg-slate-700 hover:bg-slate-600 border border-slate-500 px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 active:scale-95">
+      🔄 ดึงข้อมูลล่าสุด
+    </button>
+  </div>
+
+  <!-- Board -->
+  <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-5 flex-1 overflow-hidden max-w-7xl mx-auto w-full">
+    
+    <!-- Column: ออเดอร์ใหม่ -->
+    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
+      <div class="bg-orange-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
+        <span>📝 ออเดอร์ใหม่</span>
+        <span id="count-Pending" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
+      </div>
+      <div id="col-Pending" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
+    </div>
+
+    <!-- Column: กำลังทำ -->
+    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
+      <div class="bg-blue-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
+        <span>🍳 กำลังปรุง</span>
+        <span id="count-Cooking" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
+      </div>
+      <div id="col-Cooking" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
+    </div>
+
+    <!-- Column: พร้อมเสิร์ฟ -->
+    <div class="bg-slate-100/50 rounded-3xl p-3 border border-slate-200 flex flex-col h-full">
+      <div class="bg-emerald-500 text-white font-black text-center py-2.5 rounded-2xl mb-3 shadow-sm text-sm flex justify-between px-4 items-center">
+        <span>🔔 พร้อมเสิร์ฟ</span>
+        <span id="count-Ready" class="bg-white/20 px-2 py-0.5 rounded-lg text-xs">0</span>
+      </div>
+      <div id="col-Ready" class="space-y-3 overflow-y-auto hide-scrollbar flex-1 pb-4 px-1"></div>
+    </div>
+
+  </div>
+
+  <!-- เสียงเตือนออเดอร์ใหม่ -->
+  <audio id="newOrderSound" src="https://files.catbox.moe/7s5kwu.mp3" preload="auto"></audio>
+
   <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec"; 
-
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec"; // 👈 วางลิงก์ Web App
+    
     let currentOrders = [];
-    let currentMenus = [];
+    let previousPendingCount = 0;
+    let autoRefreshInterval = null;
 
-    window.onload = () => {
-      fetchData();
-      setInterval(fetchData, 8000);
-    };
+    function startAdminSystem() {
+      document.getElementById('soundUnlockOverlay').classList.add('hidden');
+      const sound = document.getElementById('newOrderSound');
+      sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(() => {});
+      
+      fetchOrders();
+      autoRefreshInterval = setInterval(fetchOrders, 10000);
+    }
 
-    async function fetchData() {
+    async function fetchOrders() {
       try {
-        const resOrders = await fetch(GAS_URL + "?action=getAdminOrders");
-        const dataOrders = await resOrders.json();
-        if (dataOrders.orders) {
-          currentOrders = dataOrders.orders;
+        const res = await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'getAdminOrders' })
+        });
+        const data = await res.json();
+        
+        if (data.status === 'success') {
+          currentOrders = data.orders;
           renderOrders();
+          checkNewOrders();
         }
+      } catch (e) {
+        console.error('Error fetching orders:', e);
+      }
+    }
 
-        const resMenu = await fetch(GAS_URL + "?action=getMenus");
-        const dataMenu = await resMenu.json();
-        if (dataMenu.menus) {
-          currentMenus = dataMenu.menus;
-        }
-      } catch (e) {}
+    function checkNewOrders() {
+      const pendingCount = currentOrders.filter(o => o.status === 'Pending').length;
+      if (pendingCount > previousPendingCount) {
+        document.getElementById('newOrderSound').play().catch(e => console.log('Sound blocked:', e));
+      }
+      previousPendingCount = pendingCount;
     }
 
     function renderOrders() {
-      const cols = { Pending: '', Cooking: '', Ready: '' };
-      const counts = { Pending: 0, Cooking: 0, Ready: 0 };
+      const cols = { 'Pending': '', 'Cooking': '', 'Ready': '' };
+      const counts = { 'Pending': 0, 'Cooking': 0, 'Ready': 0 };
 
-      currentOrders.forEach(o => {
-        if (cols[o.status] === undefined) return;
-        counts[o.status]++;
+      currentOrders.forEach(order => {
+        if (!cols.hasOwnProperty(order.status)) return; 
 
-        const isTransfer = o.paymentMethod === 'เงินโอน';
-        const isPaid = o.paymentStatus === 'Paid';
+        counts[order.status]++;
+        const isTransferred = (order.paymentMethod === 'เงินโอน' || order.paymentMethod === 'Paid');
+        
+        const slipButton = isTransferred && order.slipImage 
+          ? `<button onclick="viewSlip('${order.orderId}')" class="mt-2 w-full bg-slate-800 text-white text-[11px] py-2 rounded-xl font-bold flex items-center justify-center gap-1 hover:bg-slate-700 active:scale-95 transition-transform">📸 ตรวจสอบสลิปโอนเงิน</button>` 
+          : `<div class="mt-2 text-center text-[11px] font-bold text-orange-600 bg-orange-50 py-2 rounded-xl border border-orange-200">💵 จ่ายเงินสด / รอสลิป</div>`;
 
-        let payBadge = isTransfer
-          ? (isPaid 
-              ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200">💳 โอนแล้ว</span>`
-              : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 border border-amber-200">💳 รอโอน</span>`)
-          : `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 border border-slate-200">💵 เงินสด</span>`;
-
-        let actionBtn = '';
-        if (o.status === 'Pending') {
-          actionBtn = `<button onclick="changeStatus('${o.orderId}', 'Cooking')" class="w-full bg-blue-600 text-white font-extrabold text-xs py-2 rounded-xl active:scale-95">🍳 เริ่มปรุง</button>`;
-        } else if (o.status === 'Cooking') {
-          actionBtn = `<button onclick="changeStatus('${o.orderId}', 'Ready')" class="w-full bg-emerald-600 text-white font-extrabold text-xs py-2 rounded-xl active:scale-95">🔔 ปรุงเสร็จแล้ว</button>`;
-        } else if (o.status === 'Ready') {
-          actionBtn = `<button onclick="changeStatus('${o.orderId}', 'Completed')" class="w-full bg-slate-200 text-slate-700 font-extrabold text-xs py-2 rounded-xl active:scale-95">✅ รับเรียบร้อย</button>`;
+        let actionButton = '';
+        if (order.status === 'Pending') {
+          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Cooking')" class="mt-3 w-full bg-blue-500 hover:bg-blue-600 text-white font-black text-xs py-3 rounded-xl shadow-md transition-all active:scale-95">➡️ เริ่มปรุงอาหาร</button>`;
+        } else if (order.status === 'Cooking') {
+          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Ready')" class="mt-3 w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs py-3 rounded-xl shadow-md transition-all active:scale-95">✅ ปรุงเสร็จแล้ว</button>`;
+        } else if (order.status === 'Ready') {
+          actionButton = `<button onclick="changeStatus('${order.orderId}', 'Completed')" class="mt-3 w-full bg-slate-300 hover:bg-slate-400 text-slate-700 font-black text-xs py-3 rounded-xl transition-all active:scale-95">ลบออก (รับแล้ว)</button>`;
         }
 
         const card = `
-          <div class="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 shadow-sm">
-            <div class="flex justify-between items-start pb-2 border-b border-slate-100">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-black bg-slate-900 text-white px-2 py-0.5 rounded-md">#${o.orderId}</span>
-                ${payBadge}
-              </div>
-              <span class="text-sm font-black text-slate-800">${o.totalPrice} ฿</span>
+          <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
+            <div class="flex justify-between items-start mb-2">
+              <span class="bg-slate-800 text-white text-[10px] font-black px-2.5 py-1 rounded-lg">#${order.orderId}</span>
+              <span class="text-base font-black text-emerald-600">${order.totalPrice} ฿</span>
             </div>
-            <div class="flex justify-between text-xs font-bold text-slate-700">
-              <span>👤 ${o.studentName}</span>
-              <span class="text-red-500">🌶️ ${o.spiciness}</span>
-            </div>
-            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600 whitespace-pre-wrap leading-relaxed">
-              ${o.items}
-            </div>
-            ${actionBtn}
+            
+            <p class="font-bold text-sm text-slate-800 truncate">👤 ${order.studentName}</p>
+            <p class="text-[10px] text-slate-500 font-medium mb-1">ชั้น/โต๊ะ: ${order.class}</p>
+            
+            <span class="text-[10px] text-red-600 font-bold bg-red-50 inline-block px-2 py-1 rounded-md mb-2 border border-red-100">🌶️ ${order.spiciness}</span>
+            
+            <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-700 font-medium mb-2 whitespace-pre-wrap leading-relaxed">${order.items}</div>
+            
+            ${slipButton}
+            ${actionButton}
           </div>
         `;
-        cols[o.status] += card;
+
+        cols[order.status] += card;
       });
 
-      document.getElementById('badge-Pending').innerText = counts.Pending;
-      document.getElementById('badge-Cooking').innerText = counts.Cooking;
-      document.getElementById('badge-Ready').innerText = counts.Ready;
+      // Update HTML and Counts
+      ['Pending', 'Cooking', 'Ready'].forEach(status => {
+        document.getElementById(`col-${status}`).innerHTML = cols[status] || `<div class="h-24 flex items-center justify-center border-2 border-dashed border-slate-200 rounded-2xl"><p class="text-xs text-slate-400 font-medium">ไม่มีออเดอร์</p></div>`;
+        document.getElementById(`count-${status}`).innerText = counts[status];
+      });
+    }
 
-      document.getElementById('kpi-pending').innerText = counts.Pending;
-      document.getElementById('kpi-cooking').innerText = counts.Cooking;
-      document.getElementById('kpi-ready').innerText = counts.Ready;
-      document.getElementById('kpi-total').innerText = currentOrders.length;
-
-      const empty = (t) => `<div class="h-32 flex items-center justify-center text-slate-400 text-xs font-bold">${t}</div>`;
-      document.getElementById('col-Pending').innerHTML = cols.Pending || empty('ไม่มีออเดอร์ใหม่');
-      document.getElementById('col-Cooking').innerHTML = cols.Cooking || empty('ไม่มีรายการกำลังปรุง');
-      document.getElementById('col-Ready').innerHTML = cols.Ready || empty('ไม่มีรายการรอรับ');
+    function viewSlip(orderId) {
+      const order = currentOrders.find(o => o.orderId === orderId);
+      if (order && order.slipImage) {
+        Swal.fire({
+          title: `<span class="text-base font-black">สลิปออเดอร์ #${orderId}</span>`,
+          imageUrl: order.slipImage,
+          imageAlt: 'Slip Image',
+          confirmButtonText: 'ปิด',
+          confirmButtonColor: '#0f172a'
+        });
+      } else {
+        Swal.fire('ข้อผิดพลาด', 'ไม่พบรูปสลิปของออเดอร์นี้', 'error');
+      }
     }
 
     async function changeStatus(orderId, newStatus) {
+      // Optimistic UI Update (เปลี่ยนในหน้าจอทันทีก่อนรอเซิร์ฟเวอร์)
       const order = currentOrders.find(o => o.orderId === orderId);
-      if (order) order.status = newStatus;
+      if(order) order.status = newStatus;
       renderOrders();
 
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'updateStatus', orderId, newStatus })
-      });
-    }
-
-    function openStockModal() {
-      renderStockList();
-      document.getElementById('stockModal').classList.remove('hidden');
-    }
-
-    function closeStockModal() {
-      document.getElementById('stockModal').classList.add('hidden');
-    }
-
-    function renderStockList() {
-      const container = document.getElementById('menuStockList');
-      container.innerHTML = currentMenus.map((item, idx) => `
-        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
-          <div>
-            <p class="font-bold text-xs text-slate-800">${item.name}</p>
-            <p class="text-[10px] text-slate-400">${item.price} ฿</p>
-          </div>
-          <div class="flex items-center gap-2">
-            <input type="number" id="stock-${idx}" value="${item.stock}" class="w-16 bg-white border border-slate-200 text-center rounded-xl py-1 text-xs font-bold">
-            <button onclick="saveStock(${idx})" class="bg-slate-900 text-amber-400 px-3 py-1.5 rounded-xl text-xs font-bold">บันทึก</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    async function saveStock(idx) {
-      const item = currentMenus[idx];
-      const newStock = document.getElementById(`stock-${idx}`).value;
-      
-      Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-      await fetch(GAS_URL, {
-        method: 'POST',
-        body: JSON.stringify({ action: 'updateMenu', name: item.name, stock: newStock })
-      });
-      Swal.fire({ icon: 'success', title: 'อัปเดตสต๊อกแล้ว', timer: 1000, showConfirmButton: false });
-      fetchData();
+      try {
+        await fetch(GAS_URL, {
+          method: 'POST',
+          body: JSON.stringify({ action: 'updateStatus', orderId: orderId, newStatus: newStatus })
+        });
+      } catch (e) {
+        Swal.fire('ข้อผิดพลาด', 'อัปเดตสถานะไม่สำเร็จ กรุณาลองใหม่', 'error');
+        fetchOrders(); 
+      }
     }
   </script>
 </body>
