@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>หม่าล่าซ่าฮาเฮ - สั่งอาหารออนไลน์</title>
+  <title>ล่าหมามาแดก - สั่งอาหารออนไลน์</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -36,10 +36,14 @@
       <div class="flex justify-between items-center mb-4">
         <div>
           <span class="bg-white/20 backdrop-blur-md text-white text-xs px-3 py-1 rounded-full font-bold">🔥 อร่อยเผ็ดชา</span>
-          <h1 class="text-3xl font-black tracking-tight mt-1">หม่าล่าซ่าฮาเฮ</h1>
+          <h1 class="text-3xl font-black tracking-tight mt-1">ร้านล่าหมามาแดก</h1>
         </div>
-        <button onclick="openTrackingModal()" class="bg-white text-orange-600 px-4 py-2 rounded-2xl font-bold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1">
-          🔍 เช็กสถานะคิว
+        <button onclick="openStatusPage()" class="bg-white text-orange-600 px-4 py-2.5 rounded-2xl font-extrabold text-xs shadow-md active:scale-95 transition-all flex items-center gap-1.5 relative">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-orange-500"></span>
+          </span>
+          📊 สถานะคิวอาหาร
         </button>
       </div>
       
@@ -76,12 +80,13 @@
     </button>
   </div>
 
-  <!-- แท็กเสียงแจ้งเตือนที่อัปเดตแล้ว -->
+  <!-- เสียงแจ้งเตือน -->
   <audio id="adminSound" src="https://files.catbox.moe/7s5kwu.mp3" preload="auto"></audio>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
-    
+    const PROMPTPAY_NUMBER = "1418600121013"; // 👈 ใส่เบอร์โทรหรือเลขบัตรประชาชน PromptPay ที่นี่
+
     let menus = [];
     let cart = {};
     let currentUser = null;
@@ -247,21 +252,21 @@
             <p class="text-xl font-black text-emerald-600 text-right">ยอดรวม: ${totalPrice} ฿</p>
             <hr>
             <label class="font-bold block mb-1">🌶️ ระดับความเผ็ด:</label>
-            <select id="swal-spiciness" class="w-full p-3 rounded-xl border-2 border-slate-200">
+            <select id="swal-spiciness" class="w-full p-3 rounded-xl border-2 border-slate-200 focus:outline-none focus:border-orange-500">
               <option value="เผ็ดน้อย">เผ็ดน้อย 🌶️</option>
               <option value="เผ็ดกลาง" selected>เผ็ดกลาง 🌶️🌶️</option>
               <option value="เผ็ดมาก">เผ็ดมาก 🌶️🌶️🌶️</option>
             </select>
             <label class="font-bold block mb-1">💳 การชำระเงิน:</label>
-            <select id="swal-payment" class="w-full p-3 rounded-xl border-2 border-slate-200">
-              <option value="เงินสด">เงินสด</option>
-              <option value="เงินโอน">เงินโอน (สแกน QR)</option>
+            <select id="swal-payment" class="w-full p-3 rounded-xl border-2 border-slate-200 focus:outline-none focus:border-orange-500">
+              <option value="เงินโอน">เงินโอน (สแกน QR PromptPay)</option>
+              <option value="เงินสด">เงินสดหน้าเคาน์เตอร์</option>
             </select>
           </div>
         `,
         showCancelButton: true,
-        confirmButtonText: '🚀 ยืนยันสั่งอาหาร',
-        cancelButtonText: 'แก้ไข',
+        confirmButtonText: '🚀 ดำเนินการสั่งซื้อ',
+        cancelButtonText: 'แก้ไขรายการ',
         preConfirm: () => {
           return {
             spiciness: document.getElementById('swal-spiciness').value,
@@ -276,7 +281,7 @@
     }
 
     async function sendOrder(itemsStr, totalPrice, spiciness, paymentMethod) {
-      Swal.fire({ title: 'กำลังส่งออเดอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      Swal.fire({ title: 'กำลังบันทึกออเดอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       try {
         const payload = {
           action: 'newOrder',
@@ -300,22 +305,51 @@
           localStorage.setItem('mala_active_order', data.orderId);
           startQueueTracking(data.orderId);
           
-          Swal.fire({
-            icon: 'success',
-            title: 'สั่งอาหารสำเร็จ!',
-            html: `หมายเลขออเดอร์ของคุณคือ <b class="text-2xl text-orange-500">${data.orderId}</b>`,
-            confirmButtonText: 'ติดตามสถานะคิว'
-          });
+          if (paymentMethod === 'เงินโอน') {
+            showPromptPayQRCode(data.orderId, totalPrice);
+          } else {
+            Swal.fire({
+              icon: 'success',
+              title: 'สั่งอาหารสำเร็จ!',
+              html: `หมายเลขออเดอร์ของคุณคือ <b class="text-2xl text-orange-500">${data.orderId}</b><br><span class="text-sm text-slate-500">กรุณาเตรียมเงินสดชำระที่เคาน์เตอร์</span>`,
+              confirmButtonText: 'ติดตามสถานะคิว 📊'
+            }).then(() => openStatusPage());
+          }
         }
       } catch(e) { Swal.fire('เกิดข้อผิดพลาด', 'ไม่สามารถส่งออเดอร์ได้', 'error'); }
     }
 
+    // แสดงคิวอาร์โค้ดพร้อมเพย์สแกนจ่าย
+    function showPromptPayQRCode(orderId, amount) {
+      const qrUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${amount}.png`;
+
+      Swal.fire({
+        title: 'สแกน QR Code ชำระเงิน',
+        html: `
+          <div class="flex flex-col items-center">
+            <p class="text-xs text-slate-500 mb-2">ออเดอร์หมายเลข: <b>${orderId}</b></p>
+            <div class="bg-white p-3 rounded-2xl border border-slate-200 shadow-md mb-3">
+              <img src="${qrUrl}" class="w-56 h-56 rounded-xl object-contain" alt="PromptPay QR">
+            </div>
+            <p class="text-2xl font-black text-emerald-600 mb-1">${amount.toLocaleString()} บาท</p>
+            <p class="text-xs text-slate-400">ชื่อบัญชี: ร้านหม่าล่าซ่าฮาเฮ (${PROMPTPAY_NUMBER})</p>
+          </div>
+        `,
+        confirmButtonText: 'ชำระเงินเรียบร้อย / ไปหน้าคิว ➔',
+        confirmButtonColor: '#f97316',
+        allowOutsideClick: false
+      }).then(() => {
+        openStatusPage();
+      });
+    }
+
+    // เริ่มระบบเช็กสถานะอัตโนมัติ
     function startQueueTracking(orderId) {
       myActiveOrderId = orderId;
       if (statusInterval) clearInterval(statusInterval);
       
       checkOrderStatus(orderId);
-      statusInterval = setInterval(() => checkOrderStatus(orderId), 6000);
+      statusInterval = setInterval(() => checkOrderStatus(orderId), 5000);
     }
 
     async function checkOrderStatus(orderId) {
@@ -323,40 +357,100 @@
         const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'checkStatus', orderId: orderId }) });
         const data = await res.json();
 
-        if (data.found) {
-          if (data.status === 'Ready') {
-            clearInterval(statusInterval);
-            // เล่นเสียงแจ้งเตือนจาก adminSound 🔔
-            document.getElementById('adminSound').play().catch(e => console.log(e));
-            
-            Swal.fire({
-              title: '🔔 อาหารเสร็จแล้ว!',
-              html: `<span class="text-lg">ออเดอร์ <b>${orderId}</b> พร้อมรับที่เคาน์เตอร์แล้วครับ!</span>`,
-              icon: 'success',
-              confirmButtonText: 'รับอาหารแล้ว',
-              confirmButtonColor: '#10b981'
-            }).then(() => {
-              localStorage.removeItem('mala_active_order');
-              myActiveOrderId = null;
-            });
-          }
+        if (data.found && data.status === 'Ready') {
+          clearInterval(statusInterval);
+          // เสียงแจ้งเตือน
+          document.getElementById('adminSound').play().catch(e => console.log(e));
+          
+          Swal.fire({
+            title: '🔔 อาหารเสร็จเรียบร้อย!',
+            html: `<div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                     <p class="text-3xl font-black text-emerald-600 mb-1">${orderId}</p>
+                     <p class="text-sm font-bold text-slate-700">เชิญรับอาหารรสเด็ดที่เคาน์เตอร์ได้เลยครับ!</p>
+                   </div>`,
+            icon: 'success',
+            confirmButtonText: 'รับอาหารแล้ว 👍',
+            confirmButtonColor: '#10b981'
+          }).then(() => {
+            localStorage.removeItem('mala_active_order');
+            myActiveOrderId = null;
+          });
         }
       } catch(e) {}
     }
 
-    function openTrackingModal() {
-      if (!myActiveOrderId) return Swal.fire('ไม่มีออเดอร์ค้าง', 'คุณยังไม่มีออเดอร์ที่กำลังรอดำเนินการ', 'info');
-      Swal.fire({ title: 'กำลังเช็กคิว...', didOpen: async () => {
+    // หน้าแสดงสถานะคิวแบบ Visual Stepper
+    async function openStatusPage() {
+      if (!myActiveOrderId) {
+        return Swal.fire('ไม่มีคิวอาหาร', 'คุณยังไม่มีรายการอาหารที่กำลังรอดำเนินการ', 'info');
+      }
+
+      Swal.fire({ title: 'กำลังโหลดสถานะคิว...', didOpen: () => Swal.showLoading() });
+
+      try {
         const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'checkStatus', orderId: myActiveOrderId }) });
         const data = await res.json();
-        if(data.found) {
+
+        if (data.found) {
+          const st = data.status; // Pending, Cooking, Ready, Completed
+          const isPending = st === 'Pending' || st === 'Waiting Transfer';
+          const isCooking = st === 'Cooking';
+          const isReady = st === 'Ready';
+
           Swal.fire({
             title: `ออเดอร์ ${myActiveOrderId}`,
-            html: `สถานะปัจจุบัน: <b>${data.status}</b><br>จำนวนคิวก่อนหน้า: <b class="text-orange-500 text-xl">${data.queueAhead}</b> คิว`,
-            icon: 'info'
+            html: `
+              <div class="text-left space-y-5 my-2">
+                <!-- แถบจำนวนคิวก่อนหน้า -->
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-2xl text-center shadow-lg shadow-orange-500/20">
+                  <p class="text-xs font-bold text-orange-100">จำนวนคิวก่อนหน้าคุณ</p>
+                  <p class="text-4xl font-black mt-1">${data.queueAhead} <span class="text-lg font-normal">คิว</span></p>
+                </div>
+
+                <!-- Stepper แสดงลำดับสถานะ -->
+                <div class="space-y-4 pt-2">
+                  <!-- Step 1 -->
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold ${isPending ? 'bg-orange-500 text-white animate-pulse' : (isCooking || isReady ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400')}">
+                      ${isCooking || isReady ? '✓' : '1'}
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm ${isPending ? 'text-orange-600' : 'text-slate-800'}">รับออเดอร์แล้ว 📝</p>
+                      <p class="text-xs text-slate-400">เข้าสู่ระบบคิวเรียบร้อย</p>
+                    </div>
+                  </div>
+
+                  <!-- Step 2 -->
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold ${isCooking ? 'bg-orange-500 text-white animate-pulse' : (isReady ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-400')}">
+                      ${isReady ? '✓' : '2'}
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm ${isCooking ? 'text-orange-600' : 'text-slate-800'}">กำลังปรุงอาหาร 🍳</p>
+                      <p class="text-xs text-slate-400">เชฟกำลังปิ้งหม่าล่าให้คุณ</p>
+                    </div>
+                  </div>
+
+                  <!-- Step 3 -->
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold ${isReady ? 'bg-emerald-500 text-white animate-bounce' : 'bg-slate-200 text-slate-400'}">
+                      3
+                    </div>
+                    <div>
+                      <p class="font-bold text-sm ${isReady ? 'text-emerald-600' : 'text-slate-800'}">พร้อมรับอาหาร 🔔</p>
+                      <p class="text-xs text-slate-400">อาหารพร้อมส่งมอบที่เคาน์เตอร์</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            `,
+            confirmButtonText: 'ปิดหน้าต่าง',
+            confirmButtonColor: '#475569'
           });
+        } else {
+          Swal.fire('ไม่พบออเดอร์', 'ออเดอร์อาจถูกยกเลิกหรือเสร็จสิ้นแล้ว', 'warning');
         }
-      }});
+      } catch(e) { Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลสถานะได้', 'error'); }
     }
   </script>
 </body>
