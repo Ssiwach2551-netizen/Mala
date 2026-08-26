@@ -1,444 +1,329 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ล่าหมามาแดก — สั่งอาหารออนไลน์</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <style>
-    body { font-family: 'Prompt', sans-serif; background-color: #f8fafc; color: #0f172a; }
-    .swal2-popup { font-family: 'Prompt', sans-serif !important; border-radius: 1.75rem !important; }
-    .hide-scrollbar::-webkit-scrollbar { display: none; }
-    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .glass-header { background: linear-gradient(135deg, #ea580c 0%, #dc2626 100%); }
-    .card-shadow { box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ล่าหมามาแดก | สั่งอาหาร</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+        body { font-family: 'Prompt', sans-serif; background-color: #FAFAFA; color: #333; }
+        .stepper-active { border-color: #EF4444; color: #EF4444; }
+        .stepper-done { border-color: #10B981; background-color: #10B981; color: white; }
+    </style>
 </head>
-<body class="pb-32 min-h-screen">
+<body class="antialiased pb-20">
 
-  <!-- หน้าจอเปิดเสียงแจ้งเตือน -->
-  <div id="soundUnlockOverlay" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[200] flex flex-col items-center justify-center p-6 text-center">
-    <div class="bg-white p-8 rounded-[2.5rem] shadow-2xl max-w-sm w-full space-y-5 animate-fade-in">
-      <div class="w-20 h-20 bg-orange-100 text-orange-600 rounded-3xl flex items-center justify-center text-4xl mx-auto animate-bounce shadow-inner">
-        🔔
-      </div>
-      <div>
-        <h2 class="text-2xl font-black text-slate-800">ล่าหมามาแดก</h2>
-        <p class="text-xs text-slate-500 mt-1">กดปุ่มด้านล่างเพื่อเปิดระบบเสียงแจ้งเตือนเมื่ออาหารพร้อมรับ</p>
-      </div>
-      <button onclick="enableCustomerSound()" class="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-orange-500/30 active:scale-95 transition-all text-base">
-        เข้าสู่หน้าสั่งอาหาร 🌶️
-      </button>
-    </div>
-  </div>
-
-  <!-- Hero Header -->
-  <div class="glass-header text-white px-5 pt-8 pb-10 rounded-b-[2.5rem] shadow-xl relative overflow-hidden">
-    <div class="absolute -right-6 -bottom-6 text-white/5 font-black text-9xl select-none pointer-events-none">🌶️</div>
-    <div class="max-w-md mx-auto space-y-4 relative z-10">
-      <div class="flex justify-between items-center">
-        <div>
-          <span class="bg-white/20 backdrop-blur-md text-white text-[10px] px-3 py-1 rounded-full font-bold tracking-wider uppercase border border-white/20">🔥 อร่อยเผ็ดชา</span>
-          <h1 class="text-2xl font-black tracking-tight mt-1">หม่าล่าซ่าฮาเฮ</h1>
+    <!-- Header -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-md mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-xl font-semibold text-gray-800">ล่าหมามาแดก</h1>
+            <div id="cart-btn" class="relative cursor-pointer" onclick="toggleCart()">
+                <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+            </div>
         </div>
-        <button onclick="openStatusPage()" class="bg-white/90 hover:bg-white text-orange-600 px-4 py-2.5 rounded-2xl font-black text-xs shadow-lg active:scale-95 transition-all flex items-center gap-2">
-          <span class="relative flex h-2.5 w-2.5">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
-          </span>
-          📊 สถานะคิว
-        </button>
-      </div>
-      
-      <!-- ข้อมูลผู้สั่ง -->
-      <div class="bg-slate-950/20 backdrop-blur-md p-3.5 rounded-2xl border border-white/15 flex justify-between items-center text-xs">
-        <div id="studentInfoDisplay" class="font-bold text-white/90 flex items-center gap-2">
-          <span>👤</span> <span>ยังไม่ได้ระบุชื่อผู้สั่ง</span>
+    </header>
+
+    <div class="max-w-md mx-auto px-4 mt-6" id="app-content">
+        <!-- Section: Login -->
+        <div id="login-section" class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+            <h2 class="text-lg font-medium mb-4">ข้อมูลลูกค้า</h2>
+            <input type="text" id="nikeName" placeholder="ชื่อเล่น" class="w-full mb-3 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400">
+            <input type="text" id="classRoom" placeholder="ห้อง (เช่น 6/1)" class="w-full mb-4 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400">
+            <button onclick="startOrdering()" class="w-full bg-gray-900 text-white p-3 rounded-lg font-medium hover:bg-gray-800 transition">เริ่มสั่งอาหาร</button>
         </div>
-        <button onclick="promptStudentSearch()" class="bg-white/20 hover:bg-white/30 text-white font-extrabold text-[11px] px-3 py-1.5 rounded-xl transition-all border border-white/10 active:scale-95">
-          ระบุตัวตน
-        </button>
-      </div>
+
+        <!-- Section: Menu -->
+        <div id="menu-section" class="hidden mt-6">
+            <div id="menu-list" class="grid grid-cols-2 gap-4">
+                <!-- รายการอาหารจะถูกโหลดมาใส่ตรงนี้ -->
+                <p class="text-center col-span-2 text-gray-500 text-sm py-10">กำลังโหลดเมนู...</p>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- หมวดหมู่และเมนู -->
-  <div class="max-w-md mx-auto px-4 -mt-4 relative z-20">
-    <div id="categoryTabs" class="flex gap-2 overflow-x-auto hide-scrollbar py-1"></div>
-  </div>
+    <!-- Modal: Checkout -->
+    <div id="checkout-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-end sm:items-center justify-center">
+        <div class="bg-white w-full max-w-md h-5/6 sm:h-auto sm:rounded-xl rounded-t-xl overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">ตะกร้าของคุณ</h2>
+                <button onclick="toggleCart()" class="text-gray-500 text-2xl">&times;</button>
+            </div>
+            <div id="cart-items" class="mb-4 space-y-3"></div>
+            
+            <div class="mb-4">
+                <label class="block text-sm font-medium mb-2">ระดับความเผ็ด</label>
+                <select id="spiciness" class="w-full p-3 border rounded-lg">
+                    <option value="ไม่เผ็ด">ไม่เผ็ด</option>
+                    <option value="เผ็ดน้อย">เผ็ดน้อย</option>
+                    <option value="เผ็ดกลาง" selected>เผ็ดกลาง (แนะนำ)</option>
+                    <option value="เผ็ดมาก">เผ็ดมากล่าสัตว์</option>
+                </select>
+            </div>
 
-  <div class="max-w-md mx-auto px-4 mt-4">
-    <div id="menuGrid" class="grid grid-cols-2 gap-3.5"></div>
-  </div>
+            <div class="flex justify-between font-semibold text-lg mb-4 border-t pt-4">
+                <span>ยอดรวม</span>
+                <span id="total-price" class="text-red-500">0 บาท</span>
+            </div>
 
-  <!-- Floating Cart -->
-  <div id="floatingCart" class="fixed bottom-5 left-4 right-4 max-w-md mx-auto bg-slate-900/95 backdrop-blur-md text-white rounded-3xl p-4 shadow-2xl border border-slate-800 flex justify-between items-center transition-all duration-300 translate-y-36 z-50">
-    <div>
-      <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">ยอดรวมทั้งหมด</p>
-      <p id="cartTotalPrice" class="text-xl font-black text-emerald-400">0 ฿</p>
+            <div class="mb-6">
+                <label class="block text-sm font-medium mb-2">วิธีชำระเงิน</label>
+                <div class="flex gap-2">
+                    <button onclick="selectPayment('เงินสด')" id="btn-cash" class="flex-1 py-2 border rounded-lg bg-gray-100 font-medium">เงินสด</button>
+                    <button onclick="selectPayment('สแกนจ่าย')" id="btn-qr" class="flex-1 py-2 border rounded-lg font-medium">สแกนจ่าย</button>
+                </div>
+            </div>
+
+            <div id="qr-section" class="hidden text-center mb-6 bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600 mb-2">สแกน QR Code นี้ (พร้อมเพย์)</p>
+                <img id="qr-image" src="" alt="QR Code" class="mx-auto w-48 h-48 mb-3">
+                <input type="file" id="slip-upload" accept="image/*" class="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100">
+            </div>
+
+            <button onclick="submitOrder()" class="w-full bg-gray-900 text-white p-3 rounded-lg font-medium hover:bg-gray-800 transition">ยืนยันคำสั่งซื้อ</button>
+        </div>
     </div>
-    <button onclick="openCheckoutModal()" class="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 text-white font-black px-5 py-3 rounded-2xl shadow-lg shadow-orange-500/20 active:scale-95 transition-all flex items-center gap-2 text-xs">
-      <span>🛒</span> สั่งซื้อเลย (<span id="cartTotalQty">0</span>)
-    </button>
-  </div>
 
-  <audio id="adminSound" src="https://files.catbox.moe/7s5kwu.mp3" preload="auto"></audio>
-
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
-    const PROMPTPAY_NUMBER = "1418600121013"; // 👈 ใส่เบอร์พร้อมเพย์
-    const ACCOUNT_NAME = "ศิวัช เรียมแสน"; // 👈 ชื่อบัญชีที่แสดง
-
-    let menus = [], cart = {}, currentUser = null, activeCategory = 'ทั้งหมด', statusInterval = null;
-    let myActiveOrderId = localStorage.getItem('mala_active_order') || null;
-
-    function enableCustomerSound() {
-      document.getElementById('soundUnlockOverlay').classList.add('hidden');
-      const sound = document.getElementById('adminSound');
-      sound.play().then(() => { sound.pause(); sound.currentTime = 0; }).catch(() => {});
-      init();
-    }
-
-    async function init() {
-      await loadMenuData();
-      if (myActiveOrderId) startQueueTracking(myActiveOrderId);
-    }
-
-    async function loadMenuData() {
-      try {
-        const res = await fetch(GAS_URL + "?action=getMenus");
-        const data = await res.json();
-        menus = data.menus || [];
-        renderCategories();
-        renderMenu();
-      } catch (e) {
-        console.error("Load menu failed", e);
-      }
-    }
-
-    function renderCategories() {
-      const cats = ['ทั้งหมด', ...new Set(menus.map(m => m.category || 'อาหารจานหลัก'))];
-      document.getElementById('categoryTabs').innerHTML = cats.map(c => `
-        <button onclick="setCategory('${c}')" class="px-4 py-2 rounded-2xl font-black text-xs whitespace-nowrap transition-all shadow-sm ${activeCategory === c ? 'bg-orange-600 text-white shadow-orange-500/20' : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50'}">${c}</button>
-      `).join('');
-    }
-
-    function setCategory(cat) { activeCategory = cat; renderCategories(); renderMenu(); }
-
-    function renderMenu() {
-      const grid = document.getElementById('menuGrid');
-      const filtered = activeCategory === 'ทั้งหมด' ? menus : menus.filter(m => (m.category || 'อาหารจานหลัก') === activeCategory);
-
-      if (!filtered.length) {
-        grid.innerHTML = `<p class="col-span-2 text-center text-xs text-slate-400 py-10">ไม่มีรายการอาหารในหมวดหมู่นี้</p>`;
-        return;
-      }
-
-      grid.innerHTML = filtered.map(m => {
-        const qty = cart[m.name]?.qty || 0;
-        const stock = Number(m.stock) || 0;
-        const isOutOfStock = stock <= 0;
-        const hasImg = m.image && m.image.trim() !== '' && m.image !== 'undefined';
+    <!-- Modal: Tracking -->
+    <div id="tracking-modal" class="fixed inset-0 bg-white hidden z-50 flex flex-col items-center justify-center px-6">
+        <h2 class="text-2xl font-semibold mb-8">สถานะออเดอร์</h2>
         
-        return `
-          <div class="bg-white rounded-3xl p-3 border border-slate-100 card-shadow relative overflow-hidden flex flex-col justify-between ${isOutOfStock ? 'opacity-60' : ''}">
-            ${isOutOfStock ? '<div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px] z-10 flex items-center justify-center font-black text-white text-xs tracking-wide">สินค้าหมด 😭</div>' : ''}
-            <div>
-              <div class="w-full h-28 rounded-2xl overflow-hidden bg-slate-100 mb-2.5 relative">
-                ${hasImg ? `<img src="${m.image}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-3xl bg-slate-100">🍲</div>`}
-                <span class="absolute top-2 right-2 bg-slate-900/80 backdrop-blur-md text-amber-400 font-black text-[11px] px-2.5 py-0.5 rounded-xl border border-white/10">${m.price} ฿</span>
-              </div>
-              <h3 class="font-bold text-slate-800 text-xs leading-snug mb-0.5 truncate">${m.name}</h3>
-              <p class="text-[10px] text-slate-400 font-semibold mb-3">คงเหลือ: ${stock}</p>
+        <div class="w-full max-w-xs relative border-l-2 border-gray-200 ml-3 space-y-8 py-2">
+            <!-- Step 1 -->
+            <div class="relative pl-6">
+                <div id="step-1" class="absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 bg-white stepper-active"></div>
+                <h3 class="font-medium">ร้านรับออเดอร์แล้ว</h3>
             </div>
-            <div class="flex items-center justify-between bg-slate-50 p-1 rounded-2xl border border-slate-100">
-              <button onclick="changeQty('${m.name}', -1)" class="w-7 h-7 rounded-xl bg-white text-slate-700 shadow-sm font-black active:scale-90 transition-all text-xs">-</button>
-              <span class="font-black text-xs text-slate-800">${qty}</span>
-              <button onclick="changeQty('${m.name}', 1)" ${isOutOfStock ? 'disabled' : ''} class="w-7 h-7 rounded-xl bg-orange-500 text-white shadow-sm font-black active:scale-90 transition-all text-xs">+</button>
+            <!-- Step 2 -->
+            <div class="relative pl-6">
+                <div id="step-2" class="absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1"></div>
+                <h3 class="font-medium">กำลังทอด</h3>
             </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    function changeQty(name, delta) {
-      const item = menus.find(m => m.name === name);
-      if (!item) return;
-      if (!cart[name]) cart[name] = { price: Number(item.price), qty: 0 };
-      
-      cart[name].qty += delta;
-      if (cart[name].qty > item.stock) {
-        cart[name].qty = item.stock;
-        Swal.fire({ title: 'สต๊อกสินค้าไม่พอ', icon: 'warning', timer: 1200, showConfirmButton: false, background: '#0f172a', color: '#fff' });
-      }
-      if (cart[name].qty <= 0) delete cart[name];
-      renderMenu(); 
-      updateCartBar();
-    }
-
-    function updateCartBar() {
-      let totalQty = 0, totalPrice = 0;
-      Object.values(cart).forEach(i => { totalQty += i.qty; totalPrice += (i.qty * i.price); });
-      document.getElementById('cartTotalQty').innerText = totalQty;
-      document.getElementById('cartTotalPrice').innerText = totalPrice.toLocaleString() + ' ฿';
-      document.getElementById('floatingCart').classList.toggle('translate-y-36', totalQty === 0);
-    }
-
-    async function promptStudentSearch() {
-      const { value: query } = await Swal.fire({ 
-        title: 'ระบุตัวตนผู้สั่ง', 
-        input: 'text', 
-        inputPlaceholder: 'กรอกรหัส หรือ ชื่อนักเรียน/เลขโต๊ะ...', 
-        showCancelButton: true, 
-        confirmButtonText: 'ค้นหา 🔍',
-        confirmButtonColor: '#ea580c'
-      });
-      if (query) {
-        Swal.fire({ title: 'กำลังค้นหา...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-        try {
-          const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'searchStudent', studentId: query }) });
-          const data = await res.json();
-          if (data.found) {
-            currentUser = data; 
-            document.getElementById('studentInfoDisplay').innerHTML = `<span>👤</span> <b>${data.name}</b> (${data.class || 'ทั่วไป'})`;
-            Swal.fire({ icon: 'success', title: 'พบข้อมูล!', text: `${data.name} ${data.class ? 'ห้อง ' + data.class : ''}`, timer: 1500, showConfirmButton: false });
-          } else {
-            currentUser = { name: query, class: 'ทั่วไป' };
-            document.getElementById('studentInfoDisplay').innerHTML = `<span>👤</span> <b>${query}</b>`;
-            Swal.fire({ icon: 'info', title: 'บันทึกชื่อผู้ใช้งานแล้ว', text: `คุณสั่งในชื่อ: ${query}`, timer: 1500, showConfirmButton: false });
-          }
-        } catch(e) {
-          currentUser = { name: query, class: 'ทั่วไป' };
-          document.getElementById('studentInfoDisplay').innerHTML = `<span>👤</span> <b>${query}</b>`;
-          Swal.close();
-        }
-      }
-    }
-
-    async function openCheckoutModal() {
-      if (!currentUser) { await promptStudentSearch(); if (!currentUser) return; }
-      const itemsStr = Object.entries(cart).map(([k, v]) => `${k} x${v.qty}`).join(', ');
-      const totalPrice = Object.values(cart).reduce((a, b) => a + (b.qty * b.price), 0);
-
-      const { value: form } = await Swal.fire({
-        title: 'สรุปรายการสั่งซื้อ',
-        html: `
-          <div class="text-left text-xs space-y-3 mb-2">
-            <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100 text-slate-700 leading-relaxed font-semibold">
-              <p class="text-slate-400 text-[10px] mb-1 uppercase font-bold">รายการอาหาร</p>
-              ${itemsStr}
+            <!-- Step 3 -->
+            <div class="relative pl-6">
+                <div id="step-3" class="absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1"></div>
+                <h3 class="font-medium">เสร็จแล้วมารับได้</h3>
             </div>
-            <p class="text-xl font-black text-emerald-600 text-right">ยอดรวม: ${totalPrice.toLocaleString()} ฿</p>
-            <div>
-              <label class="font-bold block mb-1 text-slate-700">🌶️ เลือกระดับความเผ็ด:</label>
-              <select id="swal-spiciness" class="w-full p-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 focus:outline-none">
-                <option value="เผ็ดน้อย">🌱 เผ็ดน้อย (กลมกล่อม)</option>
-                <option value="เผ็ดกลาง" selected>🌶️ เผ็ดกลาง (สูตรต้นตำรับ)</option>
-                <option value="เผ็ดมาก">🔥🔥 เผ็ดมาก (สะใจ)</option>
-                <option value="ไม่เผ็ด">❌ ไม่เผ็ด</option>
-              </select>
-            </div>
-            <div>
-              <label class="font-bold block mb-1 text-slate-700">💳 วิธีการชำระเงิน:</label>
-              <select id="swal-payment" class="w-full p-3 rounded-xl border border-slate-200 bg-white font-bold text-slate-700 focus:outline-none">
-                <option value="เงินโอน">💳 เงินโอน (สแกน PromptPay)</option>
-                <option value="เงินสด">💵 เงินสด</option>
-              </select>
-            </div>
-          </div>
-        `,
-        showCancelButton: true, 
-        confirmButtonText: '🚀 ยืนยันการสั่งซื้อ', 
-        confirmButtonColor: '#ea580c',
-        preConfirm: () => ({ spiciness: document.getElementById('swal-spiciness').value, paymentMethod: document.getElementById('swal-payment').value })
-      });
+        </div>
 
-      if (form) sendOrder(itemsStr, totalPrice, form.spiciness, form.paymentMethod);
-    }
+        <button onclick="location.reload()" class="mt-12 text-gray-500 underline text-sm">สั่งออเดอร์ใหม่</button>
+    </div>
 
-    async function sendOrder(itemsStr, totalPrice, spiciness, paymentMethod) {
-      Swal.fire({ title: 'กำลังส่งออเดอร์...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      try {
-        const payload = {
-          action: 'createOrder',
-          studentId: currentUser.studentId || currentUser.name,
-          studentName: currentUser.name,
-          class: currentUser.class || '',
-          items: itemsStr,
-          spiciness: spiciness,
-          totalPrice: totalPrice,
-          paymentMethod: paymentMethod,
-          paymentStatus: paymentMethod === 'เงินโอน' ? 'Pending' : 'Unpaid'
-        };
-
-        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload) });
-        const data = await res.json();
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwYPwixCzaWRagRdkkfO3Na3z62MBtfaJaCzJh5ZN0WA3eTgdakM68pEiLRQMOjHFC3fQ/exec';
+        const PROMPTPAY_NUMBER = '1418600121013'; // ใส่เบอร์พร้อมเพย์
         
-        if (data.status === 'success' || data.orderId) {
-          const orderId = data.orderId;
-          cart = {}; 
-          updateCartBar(); 
-          loadMenuData();
-          localStorage.setItem('mala_active_order', orderId);
-          startQueueTracking(orderId);
-          
-          if (paymentMethod === 'เงินโอน') {
-            showPromptPayQRCode(orderId, totalPrice);
-          } else {
-            Swal.fire({ icon: 'success', title: 'สั่งซื้อสำเร็จ!', text: `รหัสออเดอร์ของคุณ: #${orderId}`, confirmButtonText: 'ดูสถานะคิว', confirmButtonColor: '#ea580c' }).then(openStatusPage);
-          }
-        }
-      } catch(e) { 
-        Swal.fire({ icon: 'error', title: 'ส่งออเดอร์ไม่สำเร็จ', text: 'กรุณาลองใหม่อีกครั้ง', confirmButtonColor: '#ea580c' }); 
-      }
-    }
+        let cart = [];
+        let menuData = [];
+        let paymentMethod = 'เงินสด';
+        let currentOrderId = '';
+        let trackingInterval;
+        const soundAlert = new Audio('https://files.catbox.moe/7s5kwu.mp3');
 
-    function compressImage(file, callback) {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = e => {
-        const img = new Image();
-        img.src = e.target.result;
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 400;
-          const scale = MAX_WIDTH / img.width;
-          canvas.width = MAX_WIDTH;
-          canvas.height = img.height * scale;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          callback(canvas.toDataURL('image/jpeg', 0.6));
+        function startOrdering() {
+            const name = document.getElementById('nikeName').value;
+            const room = document.getElementById('classRoom').value;
+            if(!name || !room) {
+                Swal.fire({icon: 'warning', title: 'กรุณากรอกข้อมูล', text: 'ใส่ชื่อเล่นและห้องก่อนนะครับ', confirmButtonColor: '#333'});
+                return;
+            }
+            document.getElementById('login-section').classList.add('hidden');
+            document.getElementById('menu-section').classList.remove('hidden');
+            fetchMenu();
         }
-      }
-    }
 
-    function showPromptPayQRCode(orderId, amount) {
-      const qrUrl = `https://promptpay.io/${PROMPTPAY_NUMBER}/${amount}.png`;
-      Swal.fire({
-        title: 'ชำระเงิน & แนบสลิป',
-        html: `
-          <div class="flex flex-col items-center text-xs">
-            <div class="bg-white p-3 rounded-2xl border border-slate-200 mb-2 shadow-sm">
-              <img src="${qrUrl}" class="w-44 h-44 rounded-xl object-contain">
-            </div>
-            <p class="text-xl font-black text-emerald-600 mb-0.5">${amount.toLocaleString()} บาท</p>
-            <p class="text-[11px] text-slate-500 font-bold mb-3">ชื่อบัญชี: ${ACCOUNT_NAME}</p>
-            <hr class="w-full mb-3 border-slate-100">
-            <label class="block text-xs font-bold text-slate-700 mb-2 w-full text-left">📸 แนบรูปภาพสลิปโอนเงิน:</label>
-            <input type="file" id="slipInput" accept="image/*" class="w-full text-xs file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-extrabold file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100">
-          </div>
-        `,
-        confirmButtonText: 'บันทึกสลิป ➔', 
-        confirmButtonColor: '#ea580c', 
-        allowOutsideClick: false,
-        preConfirm: () => {
-          const file = document.getElementById('slipInput').files[0];
-          if (!file) { Swal.showValidationMessage('กรุณาแนบรูปสลิปโอนเงินก่อนยืนยัน'); return false; }
-          return file;
+        async function fetchMenu() {
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({action: 'getMenu'})
+                });
+                const response = await res.json();
+                menuData = response.data;
+                renderMenu();
+            } catch (err) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถโหลดเมนูได้', 'error');
+            }
         }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          Swal.fire({ title: 'กำลังอัปโหลดสลิป...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-          compressImage(result.value, async (base64Image) => {
-            await fetch(GAS_URL, { 
-              method: 'POST', 
-              body: JSON.stringify({ action: 'uploadSlip', orderId: orderId, image: base64Image }) 
+
+        function renderMenu() {
+            const menuContainer = document.getElementById('menu-list');
+            menuContainer.innerHTML = '';
+            menuData.forEach(item => {
+                if(item.stock > 0) {
+                    menuContainer.innerHTML += `
+                        <div class="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm flex flex-col">
+                            <img src="${item['รูปภาพ']}" class="w-full h-32 object-cover bg-gray-100" onerror="this.src='https://via.placeholder.com/150'">
+                            <div class="p-3 flex-1 flex flex-col justify-between">
+                                <div>
+                                    <h3 class="font-medium text-sm text-gray-800">${item.Name}</h3>
+                                    <p class="text-red-500 font-semibold text-sm mt-1">฿${item.Price}</p>
+                                </div>
+                                <button onclick="addToCart('${item.Name}', ${item.Price})" class="mt-3 w-full bg-gray-100 text-gray-800 py-1.5 rounded-lg text-sm font-medium hover:bg-gray-200">เพิ่ม</button>
+                            </div>
+                        </div>
+                    `;
+                }
             });
-            Swal.fire({ icon: 'success', title: 'อัปโหลดสำเร็จ!', text: 'ทางร้านได้รับสลิปเรียบร้อยแล้วครับ', confirmButtonColor: '#ea580c' }).then(openStatusPage);
-          });
         }
-      });
-    }
 
-    function startQueueTracking(orderId) {
-      myActiveOrderId = orderId;
-      if (statusInterval) clearInterval(statusInterval);
-      checkOrderStatus(orderId);
-      statusInterval = setInterval(() => checkOrderStatus(orderId), 5000);
-    }
-
-    async function checkOrderStatus(orderId) {
-      try {
-        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'checkStatus', orderId: orderId }) });
-        const data = await res.json();
-        if (data.found && data.status === 'Ready') {
-          clearInterval(statusInterval);
-          document.getElementById('adminSound').play().catch(()=>{});
-          Swal.fire({ 
-            title: '🔔 อาหารเสร็จเรียบร้อย!', 
-            html: `<p class="text-2xl font-black text-emerald-600 mb-1">#${orderId}</p><p class="text-xs text-slate-500">เชิญรับอาหารรสเด็ดที่เคาน์เตอร์ได้เลยครับ!</p>`, 
-            icon: 'success', 
-            confirmButtonText: 'รับอาหารแล้ว 👍',
-            confirmButtonColor: '#ea580c' 
-          }).then(() => { 
-            localStorage.removeItem('mala_active_order'); 
-            myActiveOrderId = null; 
-          });
+        function addToCart(name, price) {
+            const existing = cart.find(i => i.name === name);
+            if(existing) existing.qty += 1;
+            else cart.push({name, price, qty: 1});
+            
+            updateCartBadge();
+            Swal.fire({title: 'เพิ่มลงตะกร้าแล้ว', toast: true, position: 'bottom', showConfirmButton: false, timer: 1500, background: '#333', color: '#fff'});
         }
-      } catch(e) {}
-    }
 
-    async function openStatusPage() {
-      if (!myActiveOrderId) return Swal.fire({ title: 'ไม่มีคิวที่รอดำเนินการ', text: 'คุณยังไม่มีรายการสั่งซื้อในขณะนี้', icon: 'info', confirmButtonColor: '#ea580c' });
-      
-      Swal.fire({ title: 'กำลังโหลดสถานะ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
-      try {
-        const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'checkStatus', orderId: myActiveOrderId }) });
-        const data = await res.json();
-
-        if (data.found) {
-          const st = data.status;
-          const step1 = true;
-          const step2 = (st === 'Cooking' || st === 'Ready' || st === 'Completed');
-          const step3 = (st === 'Ready' || st === 'Completed');
-
-          Swal.fire({
-            title: `สถานะคิว #${myActiveOrderId}`,
-            html: `
-              <div class="mb-4 bg-orange-50 text-orange-600 p-3 rounded-2xl text-center border border-orange-200/60">
-                <p class="text-[10px] font-bold uppercase tracking-wider">จำนวนคิวก่อนหน้า</p>
-                <p class="text-3xl font-black mt-0.5">${data.queueAhead || 0} <span class="text-xs font-normal">คิว</span></p>
-              </div>
-
-              <div class="relative ml-2 py-2 mt-4 space-y-6 text-left">
-                <div class="absolute left-4 top-2 bottom-2 w-1 bg-slate-200 -z-10 rounded-full"></div>
-
-                <div class="flex items-center gap-4 relative">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10 ${step1 ? 'bg-orange-500 text-white ring-4 ring-white' : 'bg-slate-200 text-slate-400 ring-4 ring-white'}">1</div>
-                  <div>
-                    <h4 class="font-bold text-xs ${step1 && !step2 ? 'text-orange-600 text-sm' : 'text-slate-700'}">รับออเดอร์แล้ว 📝</h4>
-                    <p class="text-[10px] text-slate-400">ทางร้านได้รับรายการอาหารของคุณเรียบร้อยแล้ว</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-4 relative">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10 ${step2 ? 'bg-orange-500 text-white ring-4 ring-white' : 'bg-slate-200 text-slate-400 ring-4 ring-white'}">${step2 ? '2' : ''}</div>
-                  <div>
-                    <h4 class="font-bold text-xs ${step2 && !step3 ? 'text-orange-600 text-sm animate-pulse' : 'text-slate-700'}">กำลังปรุงอาหาร 🍳</h4>
-                    <p class="text-[10px] text-slate-400">เชฟกำลังปรุงหม่าล่าด้วยความพิถีพิถัน</p>
-                  </div>
-                </div>
-
-                <div class="flex items-center gap-4 relative">
-                  <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs shadow-md z-10 ${step3 ? 'bg-emerald-500 text-white ring-4 ring-white' : 'bg-slate-200 text-slate-400 ring-4 ring-white'}">${step3 ? '✓' : ''}</div>
-                  <div>
-                    <h4 class="font-bold text-xs ${step3 ? 'text-emerald-600 text-sm animate-bounce' : 'text-slate-700'}">พร้อมรับอาหาร 🔔</h4>
-                    <p class="text-[10px] text-slate-400">เชิญมารับอาหารสุดอร่อยที่เคาน์เตอร์ได้เลย</p>
-                  </div>
-                </div>
-              </div>
-            `,
-            confirmButtonText: 'ปิดหน้าต่าง',
-            confirmButtonColor: '#475569'
-          });
+        function updateCartBadge() {
+            const count = cart.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-count');
+            badge.innerText = count;
+            count > 0 ? badge.classList.remove('hidden') : badge.classList.add('hidden');
         }
-      } catch(e) {
-        Swal.fire({ title: 'เกิดข้อผิดพลาด', text: 'ไม่สามารถโหลดข้อมูลคิวได้', icon: 'error', confirmButtonColor: '#ea580c' });
-      }
-    }
-  </script>
+
+        function toggleCart() {
+            if(cart.length === 0) return Swal.fire({toast: true, position: 'bottom', title: 'ตะกร้าว่างเปล่า', showConfirmButton: false, timer: 1500});
+            
+            const modal = document.getElementById('checkout-modal');
+            if(modal.classList.contains('hidden')) {
+                renderCart();
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-items');
+            container.innerHTML = '';
+            let total = 0;
+            cart.forEach((item, idx) => {
+                total += item.price * item.qty;
+                container.innerHTML += `
+                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg text-sm border border-gray-100">
+                        <span class="font-medium">${item.name} <span class="text-gray-500 font-normal">x${item.qty}</span></span>
+                        <div class="flex items-center gap-3">
+                            <span>฿${item.price * item.qty}</span>
+                            <button onclick="removeItem(${idx})" class="text-red-400">&times;</button>
+                        </div>
+                    </div>
+                `;
+            });
+            document.getElementById('total-price').innerText = total + ' บาท';
+            
+            // อัปเดต QR Code หากเลือกสแกนจ่าย
+            if(paymentMethod === 'สแกนจ่าย') {
+                document.getElementById('qr-image').src = `https://promptpay.io/${PROMPTPAY_NUMBER}/${total}.png`;
+            }
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1);
+            if(cart.length === 0) toggleCart();
+            else { renderCart(); updateCartBadge(); }
+        }
+
+        function selectPayment(method) {
+            paymentMethod = method;
+            const btnCash = document.getElementById('btn-cash');
+            const btnQr = document.getElementById('btn-qr');
+            const qrSection = document.getElementById('qr-section');
+
+            if(method === 'เงินสด') {
+                btnCash.classList.add('bg-gray-100'); btnCash.classList.remove('bg-white');
+                btnQr.classList.remove('bg-gray-100'); btnQr.classList.add('bg-white');
+                qrSection.classList.add('hidden');
+            } else {
+                btnQr.classList.add('bg-gray-100'); btnQr.classList.remove('bg-white');
+                btnCash.classList.remove('bg-gray-100'); btnCash.classList.add('bg-white');
+                qrSection.classList.remove('hidden');
+                renderCart(); // เพื่อเจน QR ใหม่ตามยอด
+            }
+        }
+
+        async function submitOrder() {
+            const total = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            let slipBase64 = null;
+
+            if(paymentMethod === 'สแกนจ่าย') {
+                const fileInput = document.getElementById('slip-upload');
+                if(!fileInput.files[0]) {
+                    return Swal.fire('แจ้งเตือน', 'กรุณาแนบสลิปโอนเงิน', 'warning');
+                }
+                slipBase64 = await toBase64(fileInput.files[0]);
+            }
+
+            Swal.fire({title: 'กำลังส่งคำสั่งซื้อ...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+
+            const payload = {
+                action: 'placeOrder',
+                nikeName: document.getElementById('nikeName').value,
+                Class: document.getElementById('classRoom').value,
+                items: cart,
+                spiciness: document.getElementById('spiciness').value,
+                totalPrice: total,
+                paymentMethod: paymentMethod,
+                slipBase64: slipBase64
+            };
+
+            try {
+                const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const data = await res.json();
+                
+                if(data.status === 'success') {
+                    currentOrderId = data.orderId;
+                    Swal.close();
+                    document.getElementById('checkout-modal').classList.add('hidden');
+                    document.getElementById('tracking-modal').classList.remove('hidden');
+                    startTracking();
+                }
+            } catch (error) {
+                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถส่งคำสั่งซื้อได้', 'error');
+            }
+        }
+
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        function startTracking() {
+            trackingInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(API_URL, { method: 'POST', body: JSON.stringify({action: 'getOrderStatus', orderId: currentOrderId}) });
+                    const data = await res.json();
+                    
+                    if(data.status === 'success') updateStepper(data.orderStatus);
+                } catch(e) {}
+            }, 5000); // เช็คทุกๆ 5 วินาที
+        }
+
+        function updateStepper(status) {
+            const s1 = document.getElementById('step-1');
+            const s2 = document.getElementById('step-2');
+            const s3 = document.getElementById('step-3');
+
+            s1.className = 'absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 stepper-done';
+            
+            if(status === 'กำลังทอด' || status === 'เสร็จแล้วมารับได้') {
+                s2.className = 'absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 stepper-done';
+            } else {
+                s2.className = 'absolute w-4 h-4 bg-white border-2 border-gray-300 rounded-full -left-[9px] top-1 stepper-active';
+            }
+
+            if(status === 'เสร็จแล้วมารับได้') {
+                s3.className = 'absolute w-4 h-4 rounded-full -left-[9px] top-1 border-2 stepper-done';
+                clearInterval(trackingInterval);
+                soundAlert.play();
+                Swal.fire({icon: 'success', title: 'อาหารเสร็จแล้ว!', text: 'มารับอาหารที่หน้าร้านได้เลยครับ', confirmButtonColor: '#10B981'});
+            }
+        }
+    </script>
 </body>
 </html>
