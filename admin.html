@@ -7,7 +7,10 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <style>body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; } .swal2-title { font-family: 'Prompt', sans-serif !important; }</style>
+  <style>
+    body { font-family: 'Prompt', sans-serif; background-color: #f1f5f9; } 
+    .swal2-title { font-family: 'Prompt', sans-serif !important; }
+  </style>
 </head>
 <body class="p-4 md:p-6">
 
@@ -57,62 +60,70 @@
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycby7L7W7WFuTrRwS5iRKHl3_GaILa7TMpR-m4JNC7dnhjJI4ZO4sGj651_dU55oZa9aEBg/exec";
     
-    // เปลี่ยนจาก lastOrderCount มาเป็นการเก็บรายชื่อ ID เพื่อความแม่นยำ
     let knownOrders = []; 
     let isFirstLoad = true;
     let globalMenus = [];
 
     function switchAdminTab(tab) {
-      document.getElementById('section-orders').classList.add('hidden'); document.getElementById('section-stock').classList.add('hidden');
+      document.getElementById('section-orders').classList.add('hidden'); 
+      document.getElementById('section-stock').classList.add('hidden');
       document.getElementById('tab-btn-orders').className = 'flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-bold transition';
       document.getElementById('tab-btn-stock').className = 'flex-1 bg-slate-100 text-slate-600 hover:bg-slate-200 px-6 py-2.5 rounded-xl font-bold transition';
-      document.getElementById(`section-${tab}`).classList.remove('hidden'); document.getElementById(`tab-btn-${tab}`).className = 'flex-1 bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm';
+      document.getElementById(`section-${tab}`).classList.remove('hidden'); 
+      document.getElementById(`tab-btn-${tab}`).className = 'flex-1 bg-orange-500 text-white px-6 py-2.5 rounded-xl font-bold transition shadow-sm';
     }
 
     function startAdmin() {
       document.getElementById('startOverlay').style.display = 'none';
-      const audio = document.getElementById('adminSound'); audio.play().catch(e=>{}); audio.pause(); audio.currentTime = 0;
-      loadAdminOrders(); setInterval(loadAdminOrders, 8000);
+      const audio = document.getElementById('adminSound'); 
+      audio.play().catch(e=>{}); audio.pause(); audio.currentTime = 0;
+      loadAdminOrders(); 
+      setInterval(loadAdminOrders, 8000);
     }
 
     async function loadAdminOrders() {
       try {
-        const res = await fetch(GAS_URL); const data = await res.json();
+        const res = await fetch(GAS_URL); 
+        const data = await res.json();
         document.getElementById('totalSalesDisplay').innerText = data.totalSales.toLocaleString() + " ฿";
-        globalMenus = data.menus; renderStockTable();
+        globalMenus = data.menus; 
+        renderStockTable();
 
-        const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Cancelled' && o.status !== 'Expired');
+        // กรองเฉพาะออเดอร์ที่ยังทำไม่เสร็จ (ไม่รวม Completed, Done, Cancelled, Expired)
+        const active = data.orders.filter(o => o.status !== 'Completed' && o.status !== 'Done' && o.status !== 'Cancelled' && o.status !== 'Expired');
         
         let hasNewOrder = false;
         active.forEach(o => {
-          // ตรวจสอบว่ามีออเดอร์ใหม่ที่ไม่เคยอยู่ในระบบมาก่อนหรือไม่
           if (!knownOrders.includes(o.orderId)) {
             knownOrders.push(o.orderId);
             if (!isFirstLoad) hasNewOrder = true;
           }
         });
 
-        // ถ้ามีออเดอร์ใหม่ ให้เล่นเสียงและแจ้งเตือน
         if (hasNewOrder) {
-          document.getElementById('adminSound').play().catch(e => console.log('Audio play failed:', e));
+          document.getElementById('adminSound').play().catch(e => console.log('Audio error:', e));
           Swal.fire({ title: 'มีออเดอร์ใหม่เข้า!', icon: 'info', toast: true, position: 'top-end', showConfirmButton: false, timer: 4000 });
         }
         
         isFirstLoad = false;
 
-        const c = document.getElementById('adminOrders'); c.innerHTML = '';
-        if (active.length === 0) return c.innerHTML = `<div class="col-span-full flex flex-col items-center text-slate-400 py-20 bg-white rounded-2xl border border-slate-200 border-dashed"><span class="text-5xl mb-4">🎉</span><p class="font-bold text-lg">ว่างแล้ว ไม่มีออเดอร์ค้าง</p></div>`;
+        const c = document.getElementById('adminOrders'); 
+        c.innerHTML = '';
+        if (active.length === 0) {
+          return c.innerHTML = `<div class="col-span-full flex flex-col items-center text-slate-400 py-20 bg-white rounded-2xl border border-slate-200 border-dashed"><span class="text-5xl mb-4">🎉</span><p class="font-bold text-lg">ว่างแล้ว ไม่มีออเดอร์ค้าง</p></div>`;
+        }
 
         active.forEach(o => {
           const needVerify = o.paymentMethod === 'เงินโอน' && o.paymentStatus !== 'Paid';
           const isCooking = o.status === 'Cooking';
+          const isReady = o.status === 'Ready';
 
           c.innerHTML += `
-            <div class="bg-white border-2 ${needVerify ? 'border-red-400 shadow-md shadow-red-100' : isCooking ? 'border-orange-400 shadow-md shadow-orange-100' : 'border-slate-200'} rounded-2xl p-5 relative transition-all flex flex-col justify-between">
+            <div class="bg-white border-2 ${needVerify ? 'border-red-400 shadow-md shadow-red-100' : isReady ? 'border-green-400 shadow-md shadow-green-100' : isCooking ? 'border-orange-400 shadow-md shadow-orange-100' : 'border-slate-200'} rounded-2xl p-5 relative transition-all flex flex-col justify-between">
               <div>
                 ${needVerify ? '<span class="absolute -top-3 -right-3 bg-red-500 text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg animate-bounce">รอตรวจยอดเงิน</span>' : ''}
                 <div class="flex justify-between items-start mb-2">
-                  <span class="text-2xl font-black ${isCooking ? 'text-orange-500' : 'text-slate-700'}">${o.orderId}</span>
+                  <span class="text-2xl font-black ${isCooking ? 'text-orange-500' : isReady ? 'text-green-500' : 'text-slate-700'}">${o.orderId}</span>
                   <span class="bg-red-50 text-red-600 text-xs px-2.5 py-1 rounded-lg font-bold border border-red-100">🌶️ ${o.spiciness}</span>
                 </div>
                 <p class="font-bold text-slate-800 text-base mb-1">${o.studentName}</p>
@@ -126,11 +137,15 @@
 
               <div>
                 <div class="grid grid-cols-1 gap-2">
-                  ${needVerify ? `<button onclick="updateData('${o.orderId}', 'payment', 'Paid', 'ตรวจสอบและรับยอดโอน')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-sm">💰 รับยอดโอนแล้ว</button>` : 
-                    !isCooking ? `<button onclick="updateData('${o.orderId}', 'food', 'Cooking', 'เริ่มทำอาหาร')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-sm">🔥 รับออเดอร์ & เริ่มทำ</button>` : 
-                                 `<button onclick="updateData('${o.orderId}', 'food', 'Completed', 'ทำเสร็จเรียบร้อย')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-sm">✅ เสิร์ฟ (เรียกคิว)</button>`}
+                  ${needVerify ? 
+                    `<button onclick="updateData('${o.orderId}', 'payment', 'Paid', 'ตรวจสอบและรับยอดโอน')" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-xl shadow-sm">💰 รับยอดโอนแล้ว</button>` : 
+                    !isCooking && !isReady ? 
+                    `<button onclick="updateData('${o.orderId}', 'food', 'Cooking', 'เริ่มทำอาหาร')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-sm">🔥 รับออเดอร์ & เริ่มทำ</button>` : 
+                    isCooking ? 
+                    `<button onclick="updateData('${o.orderId}', 'food', 'Ready', 'อาหารเสร็จแล้ว')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl shadow-sm">✅ ทำเสร็จแล้ว (เรียกคิว)</button>` :
+                    `<button onclick="updateData('${o.orderId}', 'food', 'Done', 'ลูกค้ารับอาหารแล้ว')" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 rounded-xl shadow-sm">🎉 ลูกค้ารับอาหารแล้ว</button>`
+                  }
                 </div>
-                <!-- ปุ่มยกเลิกออเดอร์ จะคืนสต๊อกให้อัตโนมัติ -->
                 <button onclick="cancelOrder('${o.orderId}')" class="w-full text-center text-red-500 font-semibold text-xs mt-3 underline hover:text-red-700">❌ ยกเลิกออเดอร์ (คืนสต๊อก)</button>
               </div>
             </div>`;
@@ -148,20 +163,26 @@
         if (result.isConfirmed) {
           updateData(orderId, 'food', 'Cancelled', 'ยกเลิกออเดอร์และคืนสต๊อก');
         }
-      })
+      });
     }
 
     async function updateData(orderId, type, val, actionName) {
       Swal.fire({ title: `กำลังดำเนินการ...`, text: `ออเดอร์ ${orderId} : ${actionName}`, allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
       try {
-        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStatus', orderId, type, value: val }) });
+        await fetch(GAS_URL, { 
+          method: 'POST', 
+          redirect: 'follow',
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: 'updateStatus', orderId, type, value: val }) 
+        });
         Swal.fire({ title: 'สำเร็จ!', icon: 'success', timer: 1500, showConfirmButton: false });
         loadAdminOrders();
       } catch(e) { Swal.fire('ข้อผิดพลาด!', 'กรุณาลองใหม่', 'error'); }
     }
 
     function renderStockTable() {
-      const tb = document.getElementById('stockTableBody'); tb.innerHTML = '';
+      const tb = document.getElementById('stockTableBody'); 
+      tb.innerHTML = '';
       globalMenus.forEach(m => {
         const isLow = m.stock <= 5;
         tb.innerHTML += `<tr class="border-b border-slate-100 hover:bg-slate-50 transition"><td class="p-3 text-slate-500 text-sm">${m.category}</td><td class="p-3 font-bold text-slate-800">${m.name}</td><td class="p-3 text-green-600 font-bold">${m.price} ฿</td><td class="p-3"><span class="px-3 py-1 rounded-lg font-bold text-sm ${isLow ? 'bg-red-100 text-red-600 border border-red-200' : 'bg-slate-100 text-slate-700'}">${m.stock}</span></td></tr>`;
@@ -169,13 +190,24 @@
     }
 
     async function saveMenu() {
-      const cat = document.getElementById('mCat').value.trim(), name = document.getElementById('mName').value.trim(), price = document.getElementById('mPrice').value, stock = document.getElementById('mStock').value;
+      const cat = document.getElementById('mCat').value.trim(), 
+            name = document.getElementById('mName').value.trim(), 
+            price = document.getElementById('mPrice').value, 
+            stock = document.getElementById('mStock').value;
+            
       if(!cat || !name || !price || !stock) return Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกให้ครบ', 'warning');
       Swal.fire({ title: 'กำลังบันทึก...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
       try {
-        await fetch(GAS_URL, { method: 'POST', body: JSON.stringify({ action: 'updateMenu', category: cat, name: name, price: Number(price), stock: Number(stock), image: "" }) });
+        await fetch(GAS_URL, { 
+          method: 'POST', 
+          redirect: 'follow',
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: 'updateMenu', category: cat, name: name, price: Number(price), stock: Number(stock), image: "" }) 
+        });
         Swal.fire({ title: 'บันทึกสำเร็จ!', icon: 'success', timer: 1500, showConfirmButton: false });
-        document.getElementById('mName').value = ''; document.getElementById('mPrice').value = ''; document.getElementById('mStock').value = '';
+        document.getElementById('mName').value = ''; 
+        document.getElementById('mPrice').value = ''; 
+        document.getElementById('mStock').value = '';
         loadAdminOrders();
       } catch(e) { Swal.fire('ข้อผิดพลาด!', 'บันทึกไม่สำเร็จ', 'error'); }
     }
